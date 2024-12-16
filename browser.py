@@ -35,6 +35,9 @@ html = '''
                 backend.sayHello();
             });
         }
+        function printHello(){
+            console.log("Hello world");
+        }
     </script>
 </html>
 '''
@@ -49,16 +52,19 @@ class Widgets(QMainWindow):
 
         # Where the webpage is rendered.
         self.webview = QWebEngineView()
+        # Custom HTML
         webpage = QWebEnginePage(self.webview)
         webpage.setHtml(html)
         self.webview.setPage(webpage)
-        # self.webview.load(QUrl("https://www.python.org/"))
-        # self.webview.urlChanged.connect(self.url_changed)
+
+        # Simple Web browser
+        self.webview.load(QUrl("https://www.python.org/"))
+        self.webview.urlChanged.connect(self.url_changed)
 
         # setup channel
-        channel = QWebChannel(self)
-        channel.registerObject('backend', self)
-        self.webview.page().setWebChannel(channel)
+        # channel = QWebChannel(self)
+        # channel.registerObject('backend', self)
+        # self.webview.page().setWebChannel(channel)
 
         # Navigation buttons.
         self.back_button = QPushButton("<")
@@ -74,7 +80,7 @@ class Widgets(QMainWindow):
 
         # Button to load the current page.
         self.go_button = QPushButton("Go")
-        self.go_button.clicked.connect(self.url_set)
+        self.go_button.clicked.connect(self.go_button_clicked)
 
         self.toplayout = QHBoxLayout()
         self.toplayout.addWidget(self.back_button)
@@ -89,6 +95,11 @@ class Widgets(QMainWindow):
 
         self.widget.setLayout(self.layout)
         self.setCentralWidget(self.widget)
+
+    def go_button_clicked(self):
+        self.url_set()
+        # Duplex communication
+        # self.webview.page().runJavaScript("printHello();")
 
     def url_changed(self, url):
         """Refresh the address bar"""
