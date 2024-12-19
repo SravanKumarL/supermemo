@@ -1,11 +1,3 @@
-#
-#
-#       Simple PyQt/PySide Web Browser.
-#
-#       pythonassets.com
-#
-#
-
 import sys
 import os
 
@@ -52,19 +44,17 @@ class Widgets(QMainWindow):
 
         # Where the webpage is rendered.
         self.webview = QWebEngineView()
+
         # Custom HTML
         webpage = QWebEnginePage(self.webview)
         webpage.setHtml(html)
         self.webview.setPage(webpage)
-
-        # Simple Web browser
-        self.webview.load(QUrl("https://www.python.org/"))
         self.webview.urlChanged.connect(self.url_changed)
 
         # setup channel
-        # channel = QWebChannel(self)
-        # channel.registerObject('backend', self)
-        # self.webview.page().setWebChannel(channel)
+        channel = QWebChannel(self)
+        channel.registerObject('backend', self)
+        self.webview.page().setWebChannel(channel)
 
         # Navigation buttons.
         self.back_button = QPushButton("<")
@@ -97,9 +87,8 @@ class Widgets(QMainWindow):
         self.setCentralWidget(self.widget)
 
     def go_button_clicked(self):
-        self.url_set()
         # Duplex communication
-        # self.webview.page().runJavaScript("printHello();")
+        self.webview.page().runJavaScript("printHello();")
 
     def url_changed(self, url):
         """Refresh the address bar"""
