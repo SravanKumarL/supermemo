@@ -10,7 +10,7 @@
       "request": "launch",
       "program": "${file}",
       "console": "integratedTerminal",
-      "args": ["--webEngineArgs --remote-debugging-port=3000"]
+      "args": ["--webEngineArgs", "--remote-debugging-port=3000"]
     }
   ]
 }
