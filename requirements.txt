@@ -1,0 +1,20 @@
+astroid==3.3.5
+autopep8==2.3.1
+dill==0.3.9
+isort==5.13.2
+mccabe==0.7.0
+nodeenv==1.9.1
+platformdirs==4.3.6
+pycodestyle==2.12.1
+pylint==3.3.1
+# For only testing out files in tree folder
+# PyQt5==5.15.11
+# PyQt5-Qt5==5.15.15
+# PyQt5_sip==12.15.0
+pyright==1.1.390
+PySide6==6.8.0.2
+PySide6_Addons==6.8.0.2
+PySide6_Essentials==6.8.0.2
+shiboken6==6.8.0.2
+tomlkit==0.13.2
+typing_extensions==4.12.2

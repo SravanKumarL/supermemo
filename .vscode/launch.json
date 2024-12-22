@@ -5,7 +5,7 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Python Debugger: Current File with Arguments",
+      "name": "Debug the current file",
       "type": "debugpy",
       "request": "launch",
       "program": "${file}",
