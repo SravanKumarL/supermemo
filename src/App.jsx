@@ -2,6 +2,7 @@
 // import reactLogo from "./assets/react.svg";
 // import viteLogo from "/vite.svg";
 import "./App.css";
+import ContentContainer from "./content-container";
 import ContentTree from "./content-tree";
 import Search from "./search";
 
@@ -13,7 +14,7 @@ function App() {
       <Search />
       <div className="flex flex-row">
         <ContentTree />
-        <div className="">Content Container</div>
+        <ContentContainer />
       </div>
     </div>
   );
