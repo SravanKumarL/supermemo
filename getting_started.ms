@@ -1,0 +1,5 @@
+- install nvm - https://github.com/nvm-sh/nvm
+- cd to project root and `nvm install && nvm use`
+- install pnpm on your system - https://pnpm.io/installation
+- in the project root, `pnpm install`
+- run `pnpm dev`
