@@ -1,0 +1,12 @@
+.content-tree-container {
+  flex: 0 0 var(--sidebar-width);
+  background-color: var(--sidebar-bg);
+  border-radius: 8px;
+  padding: 15px;
+  box-shadow: var(--card-shadow);
+  /* min-height: calc(100vh - 220px); */
+  height: calc(100vh - 20px);
+  position: sticky;
+  top: 20px;
+  overflow-y: auto;
+}
