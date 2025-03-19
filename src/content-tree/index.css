@@ -23,7 +23,7 @@
 }
 
 .rst__node {
-  @apply my-1;
+  @apply my-2;
 }
 
 .rst__rowWrapper {
@@ -68,6 +68,7 @@
   padding: 0 !important;
   display: flex !important;
   align-items: center !important;
+  min-height: 36px !important;
 }
 
 .rst__rowLabel {
@@ -80,45 +81,80 @@
   padding: 4px 8px !important;
 }
 
-/* Node type indicator */
-.has-content {
-  @apply relative;
+/* Node content styles */
+.node-content {
+  @apply flex items-center gap-3;
 }
 
-.has-content::after {
-  content: '';
-  @apply absolute right-2 top-1/2 w-2 h-2 bg-indigo-400 rounded-full transform -translate-y-1/2;
+.node-icon {
+  @apply w-5 h-5 flex items-center justify-center;
+  font-size: 1rem !important;
+  transition: transform 0.2s ease;
+}
+
+.node-title {
+  @apply text-gray-700 hover:text-gray-900 transition-colors duration-200;
+  font-size: 0.925rem;
+  padding-right: 0.5rem;
 }
 
 /* Search styles */
 .rst__rowSearchMatch {
   outline: none !important;
-  box-shadow: 0 0 0 2px theme('colors.indigo.200') !important;
+  @apply bg-yellow-50/50 rounded-md !important;
 }
 
 .rst__rowSearchFocus {
   outline: none !important;
-  box-shadow: 0 0 0 2px theme('colors.indigo.400') !important;
+  @apply bg-yellow-100/50 rounded-md !important;
 }
 
-/* Drop indicator styles */
+/* Tree lines */
+.rst__lineChildren::after {
+  @apply opacity-50;
+}
+
 .rst__lineBlock::before,
 .rst__absoluteLineBlock::before {
-  border-color: theme('colors.indigo.400') !important;
+  @apply opacity-50;
 }
 
-/* Dragging styles */
-.rst__rowContentsDragging {
-  opacity: 0.8 !important;
-  @apply shadow-lg bg-indigo-50 !important;
+/* Hide expand/collapse buttons */
+.rst__collapseButton,
+.rst__expandButton {
+  display: none !important;
 }
 
-.rst__rowWrapperDragging {
-  opacity: 0.3;
+/* Action buttons */
+.action-button {
+  @apply w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-gray-200 hover:bg-gray-50 transition-all duration-200;
+  position: relative;
 }
 
-/* Hover effect for draggable area */
-.rst__rowContents:hover {
-  @apply bg-gray-50;
-  border-radius: 4px;
+.action-button:not(:disabled):hover {
+  @apply border-gray-300 shadow-sm transform scale-105;
+}
+
+/* Tooltip */
+.tooltip {
+  @apply invisible opacity-0 px-2 py-1 text-xs text-white bg-gray-900 rounded whitespace-nowrap transition-all duration-200;
+  position: absolute;
+  bottom: -2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 50;
+}
+
+.tooltip::before {
+  content: '';
+  position: absolute;
+  top: -0.25rem;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 0.25rem solid transparent;
+  border-bottom-color: #111827;
+}
+
+.action-button:hover .tooltip {
+  @apply visible opacity-100;
 }

@@ -70,6 +70,13 @@ function ContentTree({ onNodeSelect }) {
   const [matches, setMatches] = useState([]);
   const searchInputRef = useRef(null);
 
+  const [selectedNode, setSelectedNode] = useState(null);
+  const [selectedPath, setSelectedPath] = useState(null);
+
+  const [editingNode, setEditingNode] = useState(null);
+  const [lastClickTime, setLastClickTime] = useState(0);
+  const DOUBLE_CLICK_THRESHOLD = 200; // Shorter threshold in milliseconds (default is usually 500ms)
+
   const handleTreeChange = (treeData) => {
     // Ensure all nodes have a children array
     const ensureChildrenArray = (nodes) => {
@@ -163,7 +170,8 @@ function ContentTree({ onNodeSelect }) {
               source: "https://example.com/astronomy/order-of-planets-from-sun",
               timestamp: "2025-03-19",
               author: "John Doe",
-              isPreview: false
+              isPreview: false,
+              shouldFocusContent: true
             });
           }
           break;
@@ -229,83 +237,145 @@ function ContentTree({ onNodeSelect }) {
     }
   };
 
+  const handleDelete = (node, path) => {
+    if (node.children && node.children.length > 0) {
+      if (!window.confirm(`Are you sure you want to delete "${node.title}" and all its contents? This will delete ${node.children.length} item(s) under it.`)) {
+        return;
+      }
+    }
+    setTreeData(
+      removeNodeAtPath({
+        treeData,
+        path,
+        getNodeKey: ({ treeIndex }) => treeIndex
+      })
+    );
+  };
+
+  const handleTitleChange = (node, path, newTitle) => {
+    setTreeData(
+      changeNodeAtPath({
+        treeData,
+        path,
+        getNodeKey: ({ treeIndex }) => treeIndex,
+        newNode: { ...node, title: newTitle }
+      })
+    );
+  };
+
   const generateNodeProps = useCallback(({ node, path }) => {
-    const isMatch = searchString && customSearchMethod({ node, searchQuery: searchString });
+    const isSelected = selectedNode && selectedNode.path === path.join('-');
+    const isTopic = node.type === 'topic';
+    const isFolder = !node.type;
+    const isEditing = editingNode && editingNode.path === path.join('-');
 
     return {
-      onClick: () => {
-        onNodeSelect({
-          type: node.type,
-          title: node.title,
-          content: node.content || '',
-          topic: path[0]?.title || '',
-          source: "https://example.com/astronomy/order-of-planets-from-sun",
-          timestamp: "2025-03-19",
-          author: "John Doe",
-          isPreview: false
-        });
+      onClick: (e) => {
+        e.preventDefault();
+        const nodePath = path.join('-');
+        const currentTime = new Date().getTime();
+        
+        // Check for double click with shorter threshold
+        if (isSelected && (currentTime - lastClickTime) < DOUBLE_CLICK_THRESHOLD) {
+          // Double click detected
+          setEditingNode({ node, path: nodePath });
+          e.stopPropagation();
+        } else {
+          // Single click handling
+          if (isSelected) {
+            // Toggle expand if already selected
+            setTreeData(prevTreeData => 
+              changeNodeAtPath({
+                treeData: prevTreeData,
+                path,
+                getNodeKey: ({ treeIndex }) => treeIndex,
+                newNode: { ...node, expanded: !node.expanded }
+              })
+            );
+          } else {
+            // Select node if not selected
+            setSelectedNode({ node, path: nodePath });
+            onNodeSelect({
+              type: node.type,
+              title: node.title,
+              content: node.content || '',
+              topic: path[0]?.title || '',
+              source: "https://example.com/astronomy/order-of-planets-from-sun",
+              timestamp: "2025-03-19",
+              author: "John Doe",
+              isPreview: false,
+              shouldFocusContent: true
+            });
+          }
+          setLastClickTime(currentTime);
+        }
       },
-      className: `cursor-pointer transition-all duration-200 ${isMatch ? 'bg-yellow-50' : ''} hover:bg-gray-50`,
-      buttons: [
-        <div key="actions" className="flex gap-1">
-          <button
-            className="w-5 h-5 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-800 transition-colors duration-200"
-            onClick={(e) => {
-              e.stopPropagation();
-              addNewNode(path, 'topic', true);
-            }}
-            title="Add sibling topic"
-          >
-            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
-            </svg>
-          </button>
-          <button
-            className="w-5 h-5 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-800 transition-colors duration-200"
-            onClick={(e) => {
-              e.stopPropagation();
-              addNewNode(path, 'flashcard');
-            }}
-            title="Add flashcard"
-          >
-            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5h12M9 3v4M3 10h12M3 15h12M3 20h12"/>
-            </svg>
-          </button>
-          <button
-            className="w-5 h-5 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-800 transition-colors duration-200"
-            onClick={(e) => {
-              e.stopPropagation();
-              addNewNode(path, 'topic');
-            }}
-            title="Add topic"
-          >
-            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-            </svg>
-          </button>
-          <button
-            className="w-5 h-5 flex items-center justify-center rounded-full bg-gray-100 hover:bg-red-100 text-gray-600 hover:text-red-600 transition-colors duration-200"
-            onClick={(e) => {
-              e.stopPropagation();
-              setTreeData(
-                removeNodeAtPath({
-                  treeData,
-                  path,
-                  getNodeKey: ({ treeIndex }) => treeIndex
-                })
-              );
-            }}
-            title="Delete"
-          >
-            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
+      className: `cursor-pointer transition-colors duration-200 ${
+        isSelected ? 'bg-blue-50' : 'hover:bg-slate-50'
+      } ${searchString && searchFocusIndex === node.searchIndex ? 'bg-amber-50' : ''}`,
+      title: (
+        <div className="node-content">
+          {node.type === 'topic' ? (
+            <span 
+              className="node-icon topic flex items-center justify-center w-5 h-5 rounded bg-emerald-100 text-emerald-700 font-semibold text-sm"
+              aria-hidden="true"
+            >
+              T
+            </span>
+          ) : (
+            <span 
+              className="node-icon flashcard flex items-center justify-center w-5 h-5 rounded bg-blue-100 text-blue-700 font-semibold text-sm"
+              aria-hidden="true"
+            >
+              L
+            </span>
+          )}
+          {isEditing ? (
+            <input
+              className="node-title-input ml-2 px-1 py-0.5 text-sm border border-blue-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-400"
+              type="text"
+              defaultValue={node.title}
+              autoFocus
+              onBlur={(e) => {
+                handleTitleChange(node, path, e.target.value);
+                setEditingNode(null);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  handleTitleChange(node, path, e.target.value);
+                  setEditingNode(null);
+                }
+                if (e.key === 'Escape') {
+                  setEditingNode(null);
+                }
+              }}
+              onClick={(e) => e.stopPropagation()}
+            />
+          ) : (
+            <span className="node-title">{node.title}</span>
+          )}
+          {node.children && node.children.length > 0 && (
+            <span className="ml-2 text-xs text-gray-400 bg-gray-50 px-1.5 py-0.5 rounded-full">
+              {node.children.length}
+            </span>
+          )}
         </div>
-      ]
+      ),
+      showExpandButton: false
     };
-  }, [searchString, onNodeSelect, treeData, addNewNode]);
+  }, [searchString, onNodeSelect, selectedNode, treeData, editingNode, lastClickTime]);
+
+  // Add click handler to close editing when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (editingNode && !e.target.closest('.node-title-input')) {
+        setEditingNode(null);
+      }
+    };
+
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, [editingNode]);
 
   return (
     <div className="content-tree-container h-full flex flex-col">
@@ -327,7 +397,7 @@ function ContentTree({ onNodeSelect }) {
             </button>
           </div>
         </div>
-        <div className="content-tree-search relative">
+        <div className="content-tree-search relative mb-4">
           <input
             ref={searchInputRef}
             className="w-full px-3 py-2 pr-16 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-100 focus:border-indigo-300 transition-all duration-200"
@@ -340,6 +410,47 @@ function ContentTree({ onNodeSelect }) {
               {searchFocusIndex + 1} of {searchFoundCount}
             </div>
           )}
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex items-center justify-start gap-2 py-2">
+          <button
+            className={`action-button group relative ${!selectedNode ? 'opacity-50 cursor-not-allowed' : ''}`}
+            onClick={() => selectedPath && addNewNode(selectedPath, 'topic', true)}
+            disabled={!selectedNode}
+            title="Add sibling topic"
+          >
+            <i className="fas fa-file-circle-plus text-violet-500 text-sm" />
+            <span className="tooltip">Add Sibling Topic</span>
+          </button>
+          <button
+            className={`action-button group relative ${!selectedNode ? 'opacity-50 cursor-not-allowed' : ''}`}
+            onClick={() => selectedPath && addNewNode(selectedPath, 'flashcard')}
+            disabled={!selectedNode}
+            title="Add flashcard"
+          >
+            <i className="fas fa-square-plus text-emerald-500 text-sm" />
+            <span className="tooltip">Add Flashcard Here</span>
+          </button>
+          <button
+            className={`action-button group relative ${!selectedNode ? 'opacity-50 cursor-not-allowed' : ''}`}
+            onClick={() => selectedPath && addNewNode(selectedPath, 'topic')}
+            disabled={!selectedNode}
+            title="Add subtopic"
+          >
+            <i className="fas fa-folder-plus text-indigo-500 text-sm" />
+            <span className="tooltip">Add Subtopic Here</span>
+          </button>
+          <div className="h-4 w-px bg-gray-200 mx-1"></div>
+          <button
+            className={`action-button group relative ${!selectedNode ? 'opacity-50 cursor-not-allowed' : ''} hover:bg-red-50`}
+            onClick={() => selectedNode && selectedPath && handleDelete(selectedNode, selectedPath)}
+            disabled={!selectedNode}
+            title="Delete selected"
+          >
+            <i className="fas fa-trash-alt text-red-500 text-sm" />
+            <span className="tooltip">Delete Selected</span>
+          </button>
         </div>
       </div>
 

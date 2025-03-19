@@ -1,0 +1,52 @@
+.content-editable-placeholder:empty:before {
+  content: attr(data-placeholder);
+  color: #94a3b8; /* text-slate-400 */
+  font-style: italic;
+  pointer-events: none;
+}
+
+/* Date Picker Customization */
+.date-picker-calendar {
+  @apply bg-white rounded-lg shadow-lg border border-amber-100 p-2;
+  font-size: 0.875rem;
+}
+
+.react-datepicker__header {
+  @apply bg-amber-50 border-b border-amber-100;
+}
+
+.react-datepicker__current-month {
+  @apply text-amber-900 font-semibold;
+}
+
+.react-datepicker__day-name {
+  @apply text-amber-600;
+}
+
+.react-datepicker__day {
+  @apply text-amber-900 hover:bg-amber-50 rounded;
+}
+
+.react-datepicker__day--selected {
+  @apply bg-amber-500 text-white hover:bg-amber-600;
+}
+
+.react-datepicker__day--keyboard-selected {
+  @apply bg-amber-400 text-white hover:bg-amber-500;
+}
+
+.react-datepicker__input-container input {
+  @apply text-xs;
+}
+
+.react-datepicker__year-dropdown {
+  @apply bg-white border border-amber-100 rounded-lg shadow-lg;
+}
+
+.react-datepicker__year-option {
+  @apply hover:bg-amber-50 text-amber-900 py-1 px-2 cursor-pointer;
+}
+
+.react-datepicker__year-option--selected {
+  @apply bg-amber-500 text-white;
+}
