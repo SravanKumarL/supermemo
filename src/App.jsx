@@ -15,15 +15,26 @@ function App() {
   });
 
   const handleSearchSelect = (result) => {
-    // Update the content based on search selection
     setSelectedContent({
       type: result.type.toLowerCase(),
       topic: result.category,
       title: result.title,
-      content: `Content for ${result.title}`, // This would come from your actual data
-      source: `https://example.com/${result.category.toLowerCase()}/${result.title.toLowerCase().replace(/\s+/g, '-')}`,
-      timestamp: new Date().toISOString().split('T')[0],
-      author: "John Doe" // This would come from your actual data
+      content: result.content,
+      source: result.source,
+      timestamp: result.timestamp,
+      author: result.author
+    });
+  };
+
+  const handleTreeSelect = (node) => {
+    setSelectedContent({
+      type: node.type,
+      topic: node.topic,
+      title: node.title,
+      content: node.content,
+      source: node.source,
+      timestamp: node.timestamp,
+      author: node.author
     });
   };
 
@@ -35,7 +46,7 @@ function App() {
         </div>
         <div className="grid grid-cols-12 gap-8">
           <div className="col-span-4">
-            <ContentTree selectedContent={selectedContent} />
+            <ContentTree onNodeSelect={handleTreeSelect} />
           </div>
           <div className="col-span-8">
             <ContentContainer content={selectedContent} />
