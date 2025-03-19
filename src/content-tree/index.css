@@ -23,11 +23,11 @@
 }
 
 .rst__node {
-  @apply my-2;
+  @apply my-1; /* Reduced vertical spacing between nodes */
 }
 
 .rst__rowWrapper {
-  padding: 4px 8px !important;
+  padding: 2px 8px !important; /* Further reduced padding */
 }
 
 .rst__row {
@@ -36,8 +36,8 @@
 
 /* Move handle styles */
 .rst__moveHandle {
-  width: 44px !important;
-  height: 32px !important;
+  width: 32px !important; /* Smaller handle */
+  height: 24px !important; /* Smaller handle */
   background: none !important;
   border: none !important;
   box-shadow: none !important;
@@ -51,13 +51,13 @@
 
 .rst__moveHandle::before {
   content: '⋮';
-  color: #6b7280;
-  font-size: 18px;
-  opacity: 0.5;
+  color: #9ca3af; /* Lighter handle color */
+  font-size: 16px; /* Smaller handle dots */
+  opacity: 0.3; /* More subtle handle */
 }
 
 .rst__moveHandle:hover::before {
-  opacity: 1;
+  opacity: 0.7; /* Slightly more visible on hover */
 }
 
 /* Row content styles */
@@ -68,7 +68,7 @@
   padding: 0 !important;
   display: flex !important;
   align-items: center !important;
-  min-height: 36px !important;
+  min-height: 28px !important; /* Reduced row height */
 }
 
 .rst__rowLabel {
@@ -78,24 +78,24 @@
 
 .rst__rowTitle {
   @apply font-medium;
-  padding: 4px 8px !important;
+  padding: 2px 8px !important; /* Reduced title padding */
 }
 
 /* Node content styles */
 .node-content {
-  @apply flex items-center gap-3;
+  @apply flex items-center gap-2; /* Reduced gap */
 }
 
 .node-icon {
-  @apply w-5 h-5 flex items-center justify-center;
-  font-size: 1rem !important;
+  @apply w-4 h-4 flex items-center justify-center; /* Smaller icons */
+  font-size: 0.875rem !important; /* Smaller icon font size */
   transition: transform 0.2s ease;
 }
 
 .node-title {
   @apply text-gray-700 hover:text-gray-900 transition-colors duration-200;
-  font-size: 0.925rem;
-  padding-right: 0.5rem;
+  font-size: 0.875rem; /* Smaller title font size */
+  padding-right: 0.25rem; /* Further reduced padding */
 }
 
 /* Search styles */
@@ -111,12 +111,16 @@
 
 /* Tree lines */
 .rst__lineChildren::after {
-  @apply opacity-50;
+  @apply opacity-30; /* Even more subtle lines */
+  border-left-width: 1px; /* Thinner lines */
+  left: 12px; /* Adjust line position */
 }
 
 .rst__lineBlock::before,
 .rst__absoluteLineBlock::before {
-  @apply opacity-50;
+  @apply opacity-30; /* Even more subtle lines */
+  border-left-width: 1px; /* Thinner lines */
+  left: 12px; /* Adjust line position */
 }
 
 /* Hide expand/collapse buttons */
@@ -127,7 +131,7 @@
 
 /* Action buttons */
 .action-button {
-  @apply w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-gray-200 hover:bg-gray-50 transition-all duration-200;
+  @apply w-7 h-7 flex items-center justify-center rounded-lg bg-white border border-gray-200 hover:bg-gray-50 transition-all duration-200; /* Smaller buttons */
   position: relative;
 }
 

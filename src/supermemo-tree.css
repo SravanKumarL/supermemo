@@ -1,0 +1,337 @@
+/* Colorful SuperMemo-inspired Tree Styling */
+
+.supermemo-tree-container {
+  background: linear-gradient(to bottom, #ffffff, #f9f9ff);
+  border: 1px solid #d4d4ff;
+  border-radius: 8px;
+  height: calc(100vh - 2rem);
+  user-select: none;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 100, 0.08);
+}
+
+.supermemo-tree-header {
+  padding: 14px;
+  border-bottom: 1px solid #e0e0ff;
+  background: linear-gradient(to right, #f0f0ff, #e6e9ff);
+}
+
+.supermemo-tree-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #4942E4;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+.supermemo-tree-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.supermemo-tree-button {
+  padding: 3px 12px;
+  font-size: 0.75rem;
+  color: #5046e5;
+  font-weight: 500;
+  background: linear-gradient(to bottom, #f5f5ff, #e5e5ff);
+  border: 1px solid #d1d1ff;
+  border-radius: 15px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.supermemo-tree-button:hover {
+  background: linear-gradient(to bottom, #ebebff, #d7d7ff);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 150, 0.1);
+}
+
+.supermemo-tree-search {
+  position: relative;
+  margin-top: 12px;
+}
+
+.supermemo-search-input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #d4d4ff;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  background-color: white;
+  transition: all 0.2s ease;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 100, 0.05);
+}
+
+.supermemo-search-input:focus {
+  border-color: #7B66FF;
+  box-shadow: 0 0 0 3px rgba(123, 102, 255, 0.15);
+  outline: none;
+}
+
+.supermemo-search-count {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.75rem;
+  color: #7B66FF;
+  background-color: #f0f0ff;
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.supermemo-tree-content {
+  flex: 1;
+  overflow: auto;
+  padding: 8px;
+  background-color: #fafafa;
+}
+
+/* Node Styling */
+.supermemo-node {
+  cursor: pointer;
+  transition: all 0.2s;
+  border-radius: 4px;
+  margin: 2px 0;
+  line-height: 1.2;
+}
+
+.supermemo-node:hover {
+  background-color: #f0f0ff;
+  transform: translateX(2px);
+}
+
+.supermemo-node-selected {
+  background: linear-gradient(to right, #e1e9ff, #cedfff) !important;
+  border-left: 3px solid #5D8BF4 !important;
+}
+
+.supermemo-node-search-match {
+  background-color: #fffbe5;
+  border-left: 2px solid #FFD95A;
+}
+
+.supermemo-node-search-focus {
+  background: linear-gradient(to right, #fff8e0, #ffeaa0) !important;
+  border-left: 3px solid #FFC436 !important;
+}
+
+.supermemo-node-content {
+  display: flex;
+  align-items: center;
+  padding: 3px 6px;
+  font-size: 0.875rem;
+}
+
+.supermemo-node-title-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.supermemo-node-icon {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: bold;
+  flex-shrink: 0;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.supermemo-topic-icon {
+  background: linear-gradient(135deg, #81c995, #4ade80);
+  color: white;
+  box-shadow: 0 2px 4px rgba(22, 163, 74, 0.2);
+}
+
+.supermemo-flashcard-icon {
+  background: linear-gradient(135deg, #93c5fd, #3b82f6);
+  color: white;
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
+}
+
+.supermemo-node:hover .supermemo-topic-icon {
+  transform: rotate(-5deg) scale(1.05);
+}
+
+.supermemo-node:hover .supermemo-flashcard-icon {
+  transform: rotate(5deg) scale(1.05);
+}
+
+.supermemo-node-title {
+  margin-left: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #333;
+  transition: color 0.2s ease;
+}
+
+.supermemo-node:hover .supermemo-node-title {
+  color: #000;
+}
+
+.supermemo-node-selected .supermemo-node-title {
+  font-weight: 500;
+  color: #1e40af;
+}
+
+.supermemo-node-count {
+  font-size: 0.7rem;
+  color: #6b7280;
+  background: linear-gradient(to bottom, #f5f5ff, #efefff);
+  padding: 1px 6px;
+  border-radius: 10px;
+  margin-left: 6px;
+  border: 1px solid #e5e5ff;
+}
+
+.supermemo-node-input {
+  background: white;
+  border: 1px solid #7B66FF;
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-size: 0.875rem;
+  width: 100%;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(123, 102, 255, 0.15);
+}
+
+/* Action Buttons */
+.supermemo-action-buttons {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #e5e5ff;
+}
+
+.supermemo-action-button {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #d4d4ff;
+  background: linear-gradient(to bottom, #f8f8ff, #f0f0ff);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.supermemo-action-button:hover {
+  background: linear-gradient(to bottom, #f0f0ff, #e0e0ff);
+  transform: translateY(-2px);
+  box-shadow: 0 3px 6px rgba(0, 0, 150, 0.1);
+}
+
+.supermemo-action-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.supermemo-button-icon {
+  width: 18px;
+  height: 18px;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 3px;
+}
+
+.supermemo-delete-button:hover {
+  background: linear-gradient(to bottom, #fee2e2, #fecaca);
+  border-color: #fca5a5;
+  color: #dc2626;
+}
+
+/* Rainbow lines for vertical connectors */
+.rst__lineChildren::after {
+  border-color: #d4d4ff !important;
+  animation: rainbow-border 10s linear infinite;
+  border-width: 1px !important;
+  opacity: 0.5;
+}
+
+.rst__lineBlock::before,
+.rst__absoluteLineBlock::before {
+  border-color: #d4d4ff !important;
+  animation: rainbow-border 10s linear infinite;
+  border-width: 1px !important;
+  opacity: 0.5;
+}
+
+@keyframes rainbow-border {
+  0% { border-color: #d4d4ff; }
+  20% { border-color: #c4e0ff; }
+  40% { border-color: #c9f0d8; }
+  60% { border-color: #fff0c0; }
+  80% { border-color: #ffd4e0; }
+  100% { border-color: #d4d4ff; }
+}
+
+/* Overrides for react-sortable-tree */
+.rst__tree {
+  background: transparent !important;
+}
+
+.rst__rowWrapper {
+  padding: 0 !important;
+}
+
+.rst__row {
+  padding: 0 !important;
+}
+
+.rst__moveHandle {
+  width: 16px !important;
+  background: none !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.rst__moveHandle::before {
+  content: '⋮';
+  color: #a0a0ff;
+  font-size: 14px;
+  opacity: 0.7;
+  transition: all 0.2s ease;
+}
+
+.rst__moveHandle:hover::before {
+  opacity: 1;
+  color: #7B66FF;
+  transform: scale(1.2);
+}
+
+.rst__rowContents {
+  min-width: 0 !important;
+  box-shadow: none !important;
+  border: none !important;
+  background: none !important;
+  padding: 0 !important;
+}
+
+.rst__rowLabel {
+  padding: 0 !important;
+  flex: 1;
+}
+
+.rst__rowTitle {
+  font-weight: normal !important;
+}
+
+/* Hide default expand/collapse buttons */
+.rst__collapseButton,
+.rst__expandButton {
+  display: none !important;
+}

@@ -1,5 +1,5 @@
 /**
- * Main App component for the SuperMemo Web application.
+ * Main App component for the Serendipity application.
  * This component serves as the root layout and manages the main application state.
  * It coordinates between the content tree, search functionality, and content display.
  */
@@ -8,10 +8,10 @@ import { useState } from "react";
 import ContentContainer from "./content-container";
 import ContentTree from "./content-tree";
 import Search from "./search";
+import "./supermemo-tree.css"; // Import the SuperMemo styling
 
 function App() {
   // State to track the currently selected content item
-  // This can be either from the tree view or search results
   const [selectedContent, setSelectedContent] = useState(null);
 
   /**
@@ -72,7 +72,7 @@ function App() {
       <div className="px-8 py-4">
         <div className="flex gap-4">
           {/* Left Sidebar - Content Tree Navigation */}
-          <div className="w-1/4 bg-white rounded-lg shadow-sm">
+          <div className="w-1/4">
             <ContentTree onNodeSelect={handleNodeSelect} />
           </div>
 
@@ -103,4 +103,4 @@ function App() {
   );
 }
 
-export default App; 
+export default App;
