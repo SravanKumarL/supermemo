@@ -1,5 +1,11 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
-import SortableTree, { toggleExpandedForAll } from '@nosferatu500/react-sortable-tree';
+import SortableTree, { 
+  toggleExpandedForAll, 
+  changeNodeAtPath,
+  addNodeUnderParent,
+  removeNodeAtPath,
+  getNodeAtPath,
+} from '@nosferatu500/react-sortable-tree';
 import "@nosferatu500/react-sortable-tree/style.css";
 import "./index.css";
 
@@ -7,10 +13,12 @@ function ContentTree({ onNodeSelect }) {
   const [treeData, setTreeData] = useState([
     {
       title: "Physics",
+      type: "topic",
       expanded: true,
       children: [
         {
           title: "Astronomy",
+          type: "topic",
           expanded: true,
           children: [
             { 
@@ -22,11 +30,17 @@ function ContentTree({ onNodeSelect }) {
               title: "Planets",
               type: "topic",
               content: "The order of planets from the sun is: Mercury, Venus, Earth, Mars, Jupiter, Saturn, Uranus, Neptune."
+            },
+            {
+              title: "Hubble Telescope",
+              type: "flashcard",
+              content: "The Hubble Space Telescope is a space telescope that was launched into low Earth orbit in 1990 and remains in operation."
             }
           ]
         },
         {
           title: "Mechanics",
+          type: "topic",
           expanded: true,
           children: [
             { 
@@ -38,6 +52,11 @@ function ContentTree({ onNodeSelect }) {
               title: "Gravity",
               type: "topic",
               content: "Gravity is a force of attraction that exists between any two masses, any two bodies, any two particles."
+            },
+            {
+              title: "Newton's First Law",
+              type: "flashcard",
+              content: "An object at rest stays at rest and an object in motion stays in motion with the same speed and in the same direction unless acted upon by an unbalanced force."
             }
           ]
         }
@@ -52,7 +71,31 @@ function ContentTree({ onNodeSelect }) {
   const searchInputRef = useRef(null);
 
   const handleTreeChange = (treeData) => {
-    setTreeData(treeData);
+    // Ensure all nodes have a children array
+    const ensureChildrenArray = (nodes) => {
+      return nodes.map(node => ({
+        ...node,
+        children: node.children || []
+      }));
+    };
+
+    // Recursively process the tree
+    const processedTreeData = treeData.map(node => ({
+      ...node,
+      children: ensureChildrenArray(node.children || [])
+    }));
+
+    setTreeData(processedTreeData);
+  };
+
+  const canDrop = ({ node, nextParent, prevPath, nextPath }) => {
+    // Don't allow a node to be dropped into itself or its children
+    if (prevPath && nextPath) {
+      const prevPathStr = prevPath.join('-');
+      const nextPathStr = nextPath.join('-');
+      return !nextPathStr.startsWith(prevPathStr);
+    }
+    return true;
   };
 
   const handleSearchChange = (e) => {
@@ -79,7 +122,6 @@ function ContentTree({ onNodeSelect }) {
 
   const customSearchMethod = ({ node, searchQuery }) => {
     if (!searchQuery) return false;
-    
     return node.title.toLowerCase().indexOf(searchQuery.toLowerCase()) > -1;
   };
 
@@ -152,36 +194,118 @@ function ContentTree({ onNodeSelect }) {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [searchString, searchFocusIndex, searchFoundCount, matches, onNodeSelect]);
 
+  const addNewNode = (path, type = 'topic', asSibling = false) => {
+    const newNode = {
+      title: type === 'topic' ? 'New Topic' : 'New Flashcard',
+      type: type,
+      content: type === 'topic' ? '' : 'Enter flashcard content here...',
+      children: type === 'topic' ? [] : undefined // Only topics can have children
+    };
+
+    if (asSibling && path.length > 0) {
+      // Add as sibling by using parent's path
+      const parentPath = path.slice(0, -1);
+      setTreeData(
+        addNodeUnderParent({
+          treeData,
+          parentKey: parentPath[parentPath.length - 1],
+          expandParent: true,
+          getNodeKey: ({ treeIndex }) => treeIndex,
+          newNode,
+          addAsFirstChild: false
+        }).treeData
+      );
+    } else {
+      // Add as child
+      setTreeData(
+        addNodeUnderParent({
+          treeData,
+          parentKey: path[path.length - 1],
+          expandParent: true,
+          getNodeKey: ({ treeIndex }) => treeIndex,
+          newNode
+        }).treeData
+      );
+    }
+  };
+
   const generateNodeProps = useCallback(({ node, path }) => {
     const isMatch = searchString && customSearchMethod({ node, searchQuery: searchString });
 
     return {
       onClick: () => {
-        if (node.type) {
-          onNodeSelect({
-            type: node.type,
-            title: node.title,
-            content: node.content,
-            topic: path[0]?.title || '',
-            source: "https://example.com/astronomy/order-of-planets-from-sun",
-            timestamp: "2025-03-19",
-            author: "John Doe",
-            isPreview: false
-          });
-        }
+        onNodeSelect({
+          type: node.type,
+          title: node.title,
+          content: node.content || '',
+          topic: path[0]?.title || '',
+          source: "https://example.com/astronomy/order-of-planets-from-sun",
+          timestamp: "2025-03-19",
+          author: "John Doe",
+          isPreview: false
+        });
       },
-      className: `cursor-pointer transition-all duration-200 
-        ${isMatch ? 'bg-yellow-50' : ''} 
-        ${node.type ? 'has-content hover:bg-blue-50' : 'hover:bg-gray-50'}`,
-      icons: node.type ? [
-        <div key="type" className={`text-xs px-2 py-0.5 rounded-full ${
-          node.type === 'topic' ? 'bg-violet-100 text-violet-800' : 'bg-emerald-100 text-emerald-800'
-        }`}>
-          {node.type}
+      className: `cursor-pointer transition-all duration-200 ${isMatch ? 'bg-yellow-50' : ''} hover:bg-gray-50`,
+      buttons: [
+        <div key="actions" className="flex gap-1">
+          <button
+            className="w-5 h-5 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-800 transition-colors duration-200"
+            onClick={(e) => {
+              e.stopPropagation();
+              addNewNode(path, 'topic', true);
+            }}
+            title="Add sibling topic"
+          >
+            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+            </svg>
+          </button>
+          <button
+            className="w-5 h-5 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-800 transition-colors duration-200"
+            onClick={(e) => {
+              e.stopPropagation();
+              addNewNode(path, 'flashcard');
+            }}
+            title="Add flashcard"
+          >
+            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5h12M9 3v4M3 10h12M3 15h12M3 20h12"/>
+            </svg>
+          </button>
+          <button
+            className="w-5 h-5 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-800 transition-colors duration-200"
+            onClick={(e) => {
+              e.stopPropagation();
+              addNewNode(path, 'topic');
+            }}
+            title="Add topic"
+          >
+            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+          </button>
+          <button
+            className="w-5 h-5 flex items-center justify-center rounded-full bg-gray-100 hover:bg-red-100 text-gray-600 hover:text-red-600 transition-colors duration-200"
+            onClick={(e) => {
+              e.stopPropagation();
+              setTreeData(
+                removeNodeAtPath({
+                  treeData,
+                  path,
+                  getNodeKey: ({ treeIndex }) => treeIndex
+                })
+              );
+            }}
+            title="Delete"
+          >
+            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
         </div>
-      ] : [],
+      ]
     };
-  }, [searchString, onNodeSelect]);
+  }, [searchString, onNodeSelect, treeData, addNewNode]);
 
   return (
     <div className="content-tree-container h-full flex flex-col">
@@ -232,8 +356,9 @@ function ContentTree({ onNodeSelect }) {
             setMatches(matches);
           }}
           canDrag={true}
-          canDrop={true}
+          canDrop={canDrop}
           generateNodeProps={generateNodeProps}
+          getNodeKey={({ node, treeIndex }) => treeIndex}
           rowHeight={44}
           scaffoldBlockPxWidth={44}
           slideRegionSize={100}

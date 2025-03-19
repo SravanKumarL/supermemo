@@ -1,6 +1,7 @@
 .content-tree-container {
   @apply bg-white rounded-xl border-2 border-indigo-100 shadow-sm hover:shadow-md transition-all duration-300;
   height: calc(100vh - 2rem);
+  user-select: none;
 }
 
 .content-tree-header {
@@ -16,7 +17,7 @@
   @apply p-4;
 }
 
-/* Override react-sortable-tree styles */
+/* Tree styles */
 .rst__tree {
   background: transparent !important;
 }
@@ -26,35 +27,60 @@
 }
 
 .rst__rowWrapper {
-  @apply px-2 py-1 rounded-lg;
+  padding: 4px 8px !important;
 }
 
 .rst__row {
   @apply px-2;
 }
 
+/* Move handle styles */
 .rst__moveHandle {
-  @apply hidden;
+  width: 44px !important;
+  height: 32px !important;
+  background: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  cursor: move !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin: 0 !important;
+  padding: 0 !important;
 }
 
+.rst__moveHandle::before {
+  content: '⋮';
+  color: #6b7280;
+  font-size: 18px;
+  opacity: 0.5;
+}
+
+.rst__moveHandle:hover::before {
+  opacity: 1;
+}
+
+/* Row content styles */
 .rst__rowContents {
-  @apply bg-transparent border-0 shadow-none rounded-lg min-w-0 box-border;
+  background: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
+.rst__rowLabel {
+  padding: 0 !important;
+  flex: 1;
 }
 
 .rst__rowTitle {
   @apply font-medium;
+  padding: 4px 8px !important;
 }
 
-.rst__rowSearchMatch {
-  @apply outline-none;
-  box-shadow: 0 0 0 2px theme('colors.indigo.200');
-}
-
-.rst__rowSearchFocus {
-  @apply outline-none;
-  box-shadow: 0 0 0 2px theme('colors.indigo.400');
-}
-
+/* Node type indicator */
 .has-content {
   @apply relative;
 }
@@ -62,4 +88,37 @@
 .has-content::after {
   content: '';
   @apply absolute right-2 top-1/2 w-2 h-2 bg-indigo-400 rounded-full transform -translate-y-1/2;
+}
+
+/* Search styles */
+.rst__rowSearchMatch {
+  outline: none !important;
+  box-shadow: 0 0 0 2px theme('colors.indigo.200') !important;
+}
+
+.rst__rowSearchFocus {
+  outline: none !important;
+  box-shadow: 0 0 0 2px theme('colors.indigo.400') !important;
+}
+
+/* Drop indicator styles */
+.rst__lineBlock::before,
+.rst__absoluteLineBlock::before {
+  border-color: theme('colors.indigo.400') !important;
+}
+
+/* Dragging styles */
+.rst__rowContentsDragging {
+  opacity: 0.8 !important;
+  @apply shadow-lg bg-indigo-50 !important;
+}
+
+.rst__rowWrapperDragging {
+  opacity: 0.3;
+}
+
+/* Hover effect for draggable area */
+.rst__rowContents:hover {
+  @apply bg-gray-50;
+  border-radius: 4px;
 }

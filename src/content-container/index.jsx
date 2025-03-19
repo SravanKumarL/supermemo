@@ -18,7 +18,7 @@ function ContentContainer({ content }) {
       )}
 
       <div className="flex items-start justify-between mb-4">
-        <div className="flex-1 pr-32">
+        <div className="flex-1">
           <h1 
             className={`text-2xl font-semibold mb-2 ${content.isPreview ? 'text-blue-900' : 'text-gray-900'}`}
             contentEditable={!content.isPreview}
@@ -26,14 +26,14 @@ function ContentContainer({ content }) {
           >
             {content.title}
           </h1>
-          <div className="flex items-center gap-2 mb-4">
-            <span className={`text-xs px-2 py-0.5 rounded-full ${
-              content.type === 'topic' ? 'bg-violet-100 text-violet-800' : 'bg-emerald-100 text-emerald-800'
-            }`}>
-              {content.type}
-            </span>
-            <span className="text-sm text-gray-500">{content.topic}</span>
-          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className={`text-xs px-2 py-0.5 rounded-full ${
+            content.type === 'topic' ? 'bg-violet-100 text-violet-800' : 'bg-emerald-100 text-emerald-800'
+          }`}>
+            {content.type}
+          </span>
+          <span className="text-sm text-gray-500">{content.topic}</span>
         </div>
       </div>
 
