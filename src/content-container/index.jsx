@@ -2,16 +2,7 @@
  * ContentContainer Component
  * 
  * A component that displays and allows editing of content items (topics and flashcards).
- * Features include:
- * - Inline editing of title and content
- * - Source URL management with validation
- * - Date selection for content timestamp
- * - Author attribution
- * - Preview mode for search results
- * - Different styling for topics and flashcards
- * 
- * @param {Object} content - The content object to display/edit
- * @param {Function} onContentChange - Callback function when content is modified
+ * Fixed to prevent overlapping of Preview Mode and topic tag.
  */
 
 import React, { useEffect, useRef, useState } from 'react';
@@ -35,8 +26,6 @@ function ContentContainer({ content, onContentChange }) {
 
   /**
    * Validates if a string is a valid URL
-   * @param {string} string - The URL string to validate
-   * @returns {boolean} - Whether the string is a valid URL
    */
   const isValidUrl = (string) => {
     try {
@@ -47,10 +36,6 @@ function ContentContainer({ content, onContentChange }) {
     }
   };
 
-  /**
-   * Handles changes to the source URL
-   * @param {string} value - The new source URL value
-   */
   const handleSourceChange = (value) => {
     setSourceValue(value);
     if (onContentChange) {
@@ -61,10 +46,6 @@ function ContentContainer({ content, onContentChange }) {
     }
   };
 
-  /**
-   * Handles changes to the author name
-   * @param {string} value - The new author name
-   */
   const handleAuthorChange = (value) => {
     setAuthorValue(value);
     if (onContentChange) {
@@ -89,10 +70,6 @@ function ContentContainer({ content, onContentChange }) {
     }
   }, [content]);
 
-  /**
-   * Handles changes to the content date
-   * @param {Date} date - The new date value
-   */
   const handleDateChange = (date) => {
     setSelectedDate(date);
     if (onContentChange) {
@@ -122,20 +99,8 @@ function ContentContainer({ content, onContentChange }) {
   };
 
   return (
-    <div className={`content-container bg-slate-100 rounded-xl shadow-sm overflow-hidden ${content.isPreview ? 'border-2 border-blue-400' : ''}`}>
-      {/* Preview Mode Indicator */}
-      {content.isPreview && (
-        <div className="absolute top-3 right-3 flex items-center gap-2">
-          <div className="text-sm font-medium text-blue-700 bg-blue-200 px-3 py-1 rounded-full">
-            Preview Mode
-          </div>
-          <div className="text-sm text-blue-600">
-            Press Enter to select
-          </div>
-        </div>
-      )}
-
-      {/* Content Header */}
+    <div className={`content-container bg-slate-100 rounded-xl shadow-sm overflow-hidden ${content.isPreview ? 'border-2 border-blue-400' : ''} relative`}>
+      {/* Content Header with Repositioned Preview Mode */}
       <div className={`p-6 ${colorScheme.header}`}>
         <div className="flex items-start justify-between mb-4">
           <div className="flex-1">
@@ -147,11 +112,28 @@ function ContentContainer({ content, onContentChange }) {
               {content.title}
             </h1>
           </div>
-          <div className="flex items-center gap-2">
-            <span className={`text-xs px-2 py-0.5 rounded-full ${colorScheme.tag}`}>
-              {content.type}
-            </span>
-            <span className={`text-sm ${colorScheme.topic}`}>{content.topic}</span>
+          
+          {/* Fixed layout for type tag and preview mode to prevent overlap */}
+          <div className="flex flex-col items-end gap-2">
+            {/* Type and Topic Tags */}
+            <div className="flex items-center gap-2">
+              <span className={`text-xs px-2 py-0.5 rounded-full ${colorScheme.tag}`}>
+                {content.type}
+              </span>
+              <span className={`text-sm ${colorScheme.topic}`}>{content.topic}</span>
+            </div>
+            
+            {/* Preview Mode Indicator - Now in a more appropriate position */}
+            {content.isPreview && (
+              <div className="flex items-center gap-2 mt-2">
+                <div className="text-sm font-medium text-blue-700 bg-blue-200 px-3 py-1 rounded-full">
+                  Preview Mode
+                </div>
+                <div className="text-sm text-blue-600 whitespace-nowrap">
+                  Press Enter to select
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -282,8 +264,8 @@ function ContentContainer({ content, onContentChange }) {
       {/* Preview Mode Decorative Elements */}
       {content.isPreview && (
         <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
-          <div className="absolute -top-px left-0 w-full h-1 bg-gradient-to-r from-blue-400 via-blue-600 to-blue-400 opacity-50"></div>
-          <div className="absolute -bottom-px left-0 w-full h-1 bg-gradient-to-r from-blue-400 via-blue-600 to-blue-400 opacity-50"></div>
+          <div className="absolute -top-px left-0 w-full h-0.5 bg-gradient-to-r from-blue-400 via-blue-600 to-blue-400 opacity-50"></div>
+          <div className="absolute -bottom-px left-0 w-full h-0.5 bg-gradient-to-r from-blue-400 via-blue-600 to-blue-400 opacity-50"></div>
         </div>
       )}
     </div>

@@ -89,40 +89,50 @@
   background-color: #fafafa;
 }
 
-/* Node Styling */
+/* Node Styling - with improved selection indicators */
 .supermemo-node {
   cursor: pointer;
   transition: all 0.2s;
   border-radius: 4px;
   margin: 2px 0;
   line-height: 1.2;
+  position: relative;
+  border: none !important; /* Remove all borders */
+  overflow: visible; /* Allow for the selection indicator to extend beyond */
 }
 
 .supermemo-node:hover {
-  background-color: #f0f0ff;
+  background-color: rgba(240, 240, 255, 0.5);
   transform: translateX(2px);
 }
 
+/* Replace the heavy border with a clean left highlight and subtle background */
 .supermemo-node-selected {
-  background: linear-gradient(to right, #e1e9ff, #cedfff) !important;
-  border-left: 3px solid #5D8BF4 !important;
+  background-color: rgba(226, 232, 255, 0.5) !important;
+  position: relative;
+  /* Remove the border that was causing overlap issues */
+  border: none !important;
 }
 
-.supermemo-node-search-match {
-  background-color: #fffbe5;
-  border-left: 2px solid #FFD95A;
-}
-
-.supermemo-node-search-focus {
-  background: linear-gradient(to right, #fff8e0, #ffeaa0) !important;
-  border-left: 3px solid #FFC436 !important;
+/* Add a clean highlight indicator on the left */
+.supermemo-node-selected::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: linear-gradient(to bottom, #5D8BF4, #7B66FF);
+  border-radius: 0 2px 2px 0;
 }
 
 .supermemo-node-content {
   display: flex;
   align-items: center;
-  padding: 3px 6px;
+  padding: 4px 8px 4px 10px; /* More padding to avoid crowding */
   font-size: 0.875rem;
+  position: relative;
+  z-index: 1; /* Ensure content stays above any indicators */
 }
 
 .supermemo-node-title-container {
@@ -201,6 +211,40 @@
   width: 100%;
   outline: none;
   box-shadow: 0 0 0 3px rgba(123, 102, 255, 0.15);
+}
+
+/* Search match styling - also cleaned up */
+.supermemo-node-search-match {
+  background-color: rgba(255, 251, 229, 0.5);
+  position: relative;
+}
+
+.supermemo-node-search-match::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background-color: #FFD95A;
+  border-radius: 0 2px 2px 0;
+}
+
+/* Search focus - also cleaned up */
+.supermemo-node-search-focus {
+  background-color: rgba(255, 248, 224, 0.5) !important;
+  position: relative;
+}
+
+.supermemo-node-search-focus::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background-color: #FFC436;
+  border-radius: 0 2px 2px 0;
 }
 
 /* Action Buttons */

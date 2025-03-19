@@ -1,3 +1,10 @@
+/**
+ * ContentTree Component
+ * 
+ * A hierarchical tree view component that displays and manages content in a tree structure.
+ * Supports topics and flashcards, with drag-and-drop reordering, search, and inline editing.
+ */
+
 import React, { useState, useCallback, useEffect, useRef } from "react";
 import SortableTree, { 
   toggleExpandedForAll, 
@@ -7,7 +14,7 @@ import SortableTree, {
   getNodeAtPath,
 } from '@nosferatu500/react-sortable-tree';
 import "@nosferatu500/react-sortable-tree/style.css";
-import "../supermemo-tree.css"; // Adjust the path as needed
+import "../supermemo-tree.css"; // Adjust path as needed
 
 function ContentTree({ onNodeSelect }) {
   // Initial tree data structure with sample content
