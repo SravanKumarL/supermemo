@@ -1,3 +1,9 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
@@ -32,8 +38,12 @@
 
 body {
   margin: 0;
-  display: flex;
-  place-items: center;
   min-width: 100vw;
+  min-height: 100vh;
+  font-family: 'Roboto', sans-serif;
+}
+
+#root {
+  width: 100%;
   min-height: 100vh;
 }
