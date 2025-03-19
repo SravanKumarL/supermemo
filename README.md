@@ -1,12 +1,81 @@
-# React + Vite
+# SuperMemo Web
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A modern web application for spaced repetition learning, built with React and Vite.
 
-Currently, two official plugins are available:
+## Prerequisites
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Before you begin, you'll need to install the following tools:
 
-## Expanding the ESLint configuration
+1. **Node.js**:
+   - Visit [nodejs.org](https://nodejs.org)
+   - Download and install the LTS (Long Term Support) version
+   - Verify installation by running:
+     ```bash
+     node --version  # Should show v18 or higher
+     ```
 
-If you are developing a production application, we recommend using TypeScript and enable type-aware lint rules. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+2. **pnpm**:
+   - After installing Node.js, install pnpm globally by running:
+     ```bash
+     sudo npm install -g pnpm
+     ```
+   - Verify installation by running:
+     ```bash
+     pnpm --version  # Should show v9.6.0 or higher
+     ```
+
+## Getting Started
+
+1. Clone the repository:
+   ```bash
+   git clone <repository-url>
+   cd supermemo
+   ```
+
+2. Install all project dependencies:
+   ```bash
+   pnpm install
+   ```
+   This will install all required packages including:
+   - React and React DOM
+   - React Sortable Tree
+   - React Datepicker
+   - Fuse.js
+   - And all development dependencies
+
+3. Start the development server:
+   ```bash
+   pnpm dev
+   ```
+
+The application will be available at `http://localhost:5173`
+
+## Tech Stack
+
+- **Framework**: React 18
+- **Build Tool**: Vite 6
+- **Package Manager**: pnpm 9.6.0
+- **Styling**: TailwindCSS 3
+- **Key Dependencies**:
+  - `@nosferatu500/react-sortable-tree`: For tree-based UI components
+  - `react-datepicker`: For date selection functionality
+  - `fuse.js`: For fuzzy search capabilities
+
+## Available Scripts
+
+- `pnpm dev`: Start the development server
+- `pnpm build`: Build the project for production
+- `pnpm preview`: Preview the production build locally
+- `pnpm lint`: Run ESLint to check code quality
+
+## Development
+
+The project uses:
+- ESLint for code linting
+- TailwindCSS for styling
+- PostCSS for CSS processing
+- TypeScript for type safety
+
+## License
+
+[Add your license information here]

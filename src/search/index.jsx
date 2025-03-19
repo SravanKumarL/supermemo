@@ -1,14 +1,39 @@
+/**
+ * Search Component
+ * 
+ * A powerful search interface that allows users to search through topics and flashcards.
+ * Features include:
+ * - Real-time search with highlighting
+ * - Keyboard navigation (up/down arrows, enter, escape)
+ * - Click outside to close
+ * - Animated results dropdown
+ * - Visual feedback for selected items
+ * - Type and category tags
+ * - Content previews
+ * 
+ * @param {Function} onSelect - Callback function when a search result is selected
+ */
+
 import { useState, useMemo, useRef, useEffect } from "react";
 import "./index.css";
 
 function Search({ onSelect }) {
+  // State management for search functionality
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const searchRef = useRef(null);
   const resultsRef = useRef(null);
   
-  // Simulated database of searchable items
+  /**
+   * Simulated database of searchable items
+   * TODO: Replace with actual data source
+   * Each item has:
+   * - type: "Topic" or "Flashcard"
+   * - category: Subject area
+   * - title: Searchable title
+   * - content: Preview text
+   */
   const allItems = [
     { type: "Topic", category: "Physics", title: "What is hubble telescope", content: "The Hubble Space Telescope is a space telescope that was launched into low Earth orbit in 1990 and remains in operation." },
     { type: "Flashcard", category: "Telescope", title: "Who invented Hubble Telescope", content: "The Hubble Space Telescope is named after astronomer Edwin Hubble and was built by NASA with contributions from the European Space Agency." },
@@ -18,7 +43,10 @@ function Search({ onSelect }) {
     { type: "Flashcard", category: "Astronomy", title: "Order of planets from sun", content: "The order of planets from the sun is: Mercury, Venus, Earth, Mars, Jupiter, Saturn, Uranus, Neptune." }
   ];
 
-  // Filter and search logic
+  /**
+   * Filter and search logic using memoization for performance
+   * Searches through title, category, and type fields
+   */
   const searchResults = useMemo(() => {
     if (!searchQuery.trim()) return [];
     
@@ -32,12 +60,14 @@ function Search({ onSelect }) {
     });
   }, [searchQuery]);
 
-  // Reset selected index when results change
+  // Reset selected index when search results change
   useEffect(() => {
     setSelectedIndex(-1);
   }, [searchResults]);
 
-  // Click outside to close
+  /**
+   * Click outside handler to close the search dropdown
+   */
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (searchRef.current && !searchRef.current.contains(event.target)) {
@@ -49,7 +79,9 @@ function Search({ onSelect }) {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Scroll selected item into view
+  /**
+   * Scroll selected item into view when navigating with keyboard
+   */
   useEffect(() => {
     if (selectedIndex >= 0 && resultsRef.current) {
       const selectedElement = resultsRef.current.children[selectedIndex];
@@ -62,7 +94,12 @@ function Search({ onSelect }) {
     }
   }, [selectedIndex]);
 
-  // Highlight matching text
+  /**
+   * Highlights matching text in search results
+   * @param {string} text - The text to highlight
+   * @param {string} query - The search query
+   * @returns {JSX.Element} - Text with highlighted matches
+   */
   const highlightMatch = (text, query) => {
     if (!query) return text;
     
@@ -74,6 +111,10 @@ function Search({ onSelect }) {
     );
   };
 
+  /**
+   * Handles selection of a search result
+   * @param {Object} result - The selected search result
+   */
   const handleResultClick = (result) => {
     onSelect(result);
     setSearchQuery("");
@@ -81,6 +122,10 @@ function Search({ onSelect }) {
     setSelectedIndex(-1);
   };
 
+  /**
+   * Handles keyboard navigation in search results
+   * @param {KeyboardEvent} e - The keyboard event
+   */
   const handleKeyDown = (e) => {
     if (!isOpen) return;
 
@@ -110,6 +155,7 @@ function Search({ onSelect }) {
 
   return (
     <div className="relative" ref={searchRef}>
+      {/* Search Input */}
       <div className="relative group">
         <input
           type="text"
@@ -120,6 +166,7 @@ function Search({ onSelect }) {
           className="w-full px-5 py-4 pr-12 border-2 border-indigo-100 rounded-xl focus:outline-none focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100 bg-white shadow-sm group-hover:shadow-md transition-all duration-200 placeholder-gray-400"
           onFocus={() => setIsOpen(true)}
         />
+        {/* Clear/Search Icon Button */}
         <button 
           className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-indigo-500 transition-colors duration-200"
           onClick={() => {
@@ -136,6 +183,7 @@ function Search({ onSelect }) {
         </button>
       </div>
       
+      {/* Search Results Dropdown */}
       {isOpen && (searchResults.length > 0 || (searchQuery && searchResults.length === 0)) && (
         <div 
           ref={resultsRef}
@@ -175,7 +223,7 @@ function Search({ onSelect }) {
                   {result.category}
                 </span>
 
-                {/* Title */}
+                {/* Title with Highlighted Matches */}
                 <span className="block text-gray-900 font-medium pr-20">
                   {highlightMatch(result.title, searchQuery)}
                 </span>

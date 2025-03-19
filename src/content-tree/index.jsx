@@ -1,3 +1,20 @@
+/**
+ * ContentTree Component
+ * 
+ * A hierarchical tree view component that displays and manages content in a tree structure.
+ * Supports topics and flashcards, with drag-and-drop reordering, search, and inline editing.
+ * 
+ * Features:
+ * - Drag and drop reordering of nodes
+ * - Inline editing of node titles
+ * - Search functionality with keyboard navigation
+ * - Expand/collapse all nodes
+ * - Add/delete nodes
+ * - Preview content on hover
+ * 
+ * @param {Function} onNodeSelect - Callback function when a node is selected
+ */
+
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import SortableTree, { 
   toggleExpandedForAll, 
@@ -10,6 +27,8 @@ import "@nosferatu500/react-sortable-tree/style.css";
 import "./index.css";
 
 function ContentTree({ onNodeSelect }) {
+  // Initial tree data structure with sample content
+  // Each node can be either a topic (with children) or a flashcard (with content)
   const [treeData, setTreeData] = useState([
     {
       title: "Physics",
@@ -64,19 +83,45 @@ function ContentTree({ onNodeSelect }) {
     }
   ]);
 
+  // Search-related state
   const [searchString, setSearchString] = useState("");
   const [searchFocusIndex, setSearchFocusIndex] = useState(0);
   const [searchFoundCount, setSearchFoundCount] = useState(null);
   const [matches, setMatches] = useState([]);
   const searchInputRef = useRef(null);
 
+  // Node selection and editing state
   const [selectedNode, setSelectedNode] = useState(null);
   const [selectedPath, setSelectedPath] = useState(null);
-
   const [editingNode, setEditingNode] = useState(null);
   const [lastClickTime, setLastClickTime] = useState(0);
-  const DOUBLE_CLICK_THRESHOLD = 200; // Shorter threshold in milliseconds (default is usually 500ms)
+  const DOUBLE_CLICK_THRESHOLD = 200; // Shorter threshold for double-click detection
 
+  // Effect to focus root node on mount
+  useEffect(() => {
+    if (treeData.length > 0 && !selectedNode) {
+      const rootNode = treeData[0];
+      const rootPath = [0];
+      setSelectedNode({ node: rootNode, path: rootPath.join('-') });
+      setSelectedPath(rootPath);
+      onNodeSelect({
+        type: rootNode.type,
+        title: rootNode.title,
+        content: rootNode.content || '',
+        topic: rootNode.title,
+        source: "https://example.com/astronomy/order-of-planets-from-sun",
+        timestamp: "2025-03-19",
+        author: "John Doe",
+        isPreview: false,
+        shouldFocusContent: true
+      });
+    }
+  }, []); // Only run on mount
+
+  /**
+   * Handles changes to the tree structure
+   * Ensures all nodes have a children array for consistency
+   */
   const handleTreeChange = (treeData) => {
     // Ensure all nodes have a children array
     const ensureChildrenArray = (nodes) => {
@@ -93,10 +138,36 @@ function ContentTree({ onNodeSelect }) {
     }));
 
     setTreeData(processedTreeData);
+
+    // If the selected node was deleted, select the root node
+    if (selectedNode && !getNodeAtPath({
+      treeData: processedTreeData,
+      path: selectedPath,
+      getNodeKey: ({ treeIndex }) => treeIndex
+    })) {
+      const rootNode = processedTreeData[0];
+      const rootPath = [0];
+      setSelectedNode({ node: rootNode, path: rootPath.join('-') });
+      setSelectedPath(rootPath);
+      onNodeSelect({
+        type: rootNode.type,
+        title: rootNode.title,
+        content: rootNode.content || '',
+        topic: rootNode.title,
+        source: "https://example.com/astronomy/order-of-planets-from-sun",
+        timestamp: "2025-03-19",
+        author: "John Doe",
+        isPreview: false,
+        shouldFocusContent: true
+      });
+    }
   };
 
+  /**
+   * Determines if a node can be dropped at a specific location
+   * Prevents dropping a node into itself or its children
+   */
   const canDrop = ({ node, nextParent, prevPath, nextPath }) => {
-    // Don't allow a node to be dropped into itself or its children
     if (prevPath && nextPath) {
       const prevPathStr = prevPath.join('-');
       const nextPathStr = nextPath.join('-');
@@ -105,10 +176,16 @@ function ContentTree({ onNodeSelect }) {
     return true;
   };
 
+  /**
+   * Handles search input changes
+   */
   const handleSearchChange = (e) => {
     setSearchString(e.target.value);
   };
 
+  /**
+   * Expands all nodes in the tree
+   */
   const expandAll = () => {
     setTreeData(
       toggleExpandedForAll({
@@ -118,6 +195,9 @@ function ContentTree({ onNodeSelect }) {
     );
   };
 
+  /**
+   * Collapses all nodes in the tree
+   */
   const collapseAll = () => {
     setTreeData(
       toggleExpandedForAll({
@@ -127,11 +207,18 @@ function ContentTree({ onNodeSelect }) {
     );
   };
 
+  /**
+   * Custom search method for finding nodes
+   * Currently searches only in node titles
+   */
   const customSearchMethod = ({ node, searchQuery }) => {
     if (!searchQuery) return false;
     return node.title.toLowerCase().indexOf(searchQuery.toLowerCase()) > -1;
   };
 
+  /**
+   * Shows a preview of the selected node's content
+   */
   const showPreview = (matchNode) => {
     if (matchNode && matchNode.node.type) {
       onNodeSelect({
@@ -147,12 +234,14 @@ function ContentTree({ onNodeSelect }) {
     }
   };
 
+  // Effect to show preview when search focus changes
   useEffect(() => {
     if (matches.length > 0 && searchFocusIndex < matches.length) {
       showPreview(matches[searchFocusIndex]);
     }
   }, [searchFocusIndex, matches]);
 
+  // Effect to handle keyboard navigation in search
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (!searchString) return;
@@ -160,6 +249,7 @@ function ContentTree({ onNodeSelect }) {
       switch (e.key) {
         case 'Enter':
           e.preventDefault();
+          // Select the currently focused search result
           const matchingNodes = matches[searchFocusIndex];
           if (matchingNodes && matchingNodes.node.type) {
             onNodeSelect({
@@ -181,6 +271,7 @@ function ContentTree({ onNodeSelect }) {
           break;
         case 'ArrowDown':
           e.preventDefault();
+          // Move focus to next search result
           if (searchFoundCount > 0) {
             setSearchFocusIndex((prevIndex) =>
               (prevIndex + 1) % searchFoundCount
@@ -189,6 +280,7 @@ function ContentTree({ onNodeSelect }) {
           break;
         case 'ArrowUp':
           e.preventDefault();
+          // Move focus to previous search result
           if (searchFoundCount > 0) {
             setSearchFocusIndex((prevIndex) =>
               (prevIndex - 1 + searchFoundCount) % searchFoundCount
@@ -202,7 +294,15 @@ function ContentTree({ onNodeSelect }) {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [searchString, searchFocusIndex, searchFoundCount, matches, onNodeSelect]);
 
+  /**
+   * Adds a new node to the tree
+   * @param {Array} path - Path to the parent node
+   * @param {string} type - Type of node ('topic' or 'flashcard')
+   * @param {boolean} asSibling - Whether to add as sibling instead of child
+   */
   const addNewNode = (path, type = 'topic', asSibling = false) => {
+    if (!path || !selectedNode) return;
+
     const newNode = {
       title: type === 'topic' ? 'New Topic' : 'New Flashcard',
       type: type,
@@ -210,9 +310,12 @@ function ContentTree({ onNodeSelect }) {
       children: type === 'topic' ? [] : undefined // Only topics can have children
     };
 
-    if (asSibling && path.length > 0) {
+    // Get the actual path of the selected node
+    const targetPath = selectedNode.path.split('-').map(Number);
+
+    if (asSibling && targetPath.length > 0) {
       // Add as sibling by using parent's path
-      const parentPath = path.slice(0, -1);
+      const parentPath = targetPath.slice(0, -1);
       setTreeData(
         addNodeUnderParent({
           treeData,
@@ -224,11 +327,11 @@ function ContentTree({ onNodeSelect }) {
         }).treeData
       );
     } else {
-      // Add as child
+      // Add as child to the selected node
       setTreeData(
         addNodeUnderParent({
           treeData,
-          parentKey: path[path.length - 1],
+          parentKey: targetPath[targetPath.length - 1],
           expandParent: true,
           getNodeKey: ({ treeIndex }) => treeIndex,
           newNode
@@ -237,12 +340,22 @@ function ContentTree({ onNodeSelect }) {
     }
   };
 
+  /**
+   * Handles deletion of a node
+   * Shows confirmation dialog if node has children
+   */
   const handleDelete = (node, path) => {
+    // Ensure we have a node to delete
+    if (!selectedNode) return;
+
+    // Show warning if node has children
     if (node.children && node.children.length > 0) {
       if (!window.confirm(`Are you sure you want to delete "${node.title}" and all its contents? This will delete ${node.children.length} item(s) under it.`)) {
         return;
       }
     }
+
+    // Delete the node using the provided path
     setTreeData(
       removeNodeAtPath({
         treeData,
@@ -250,6 +363,51 @@ function ContentTree({ onNodeSelect }) {
         getNodeKey: ({ treeIndex }) => treeIndex
       })
     );
+
+    // After deletion, select the parent node if it exists, otherwise select root
+    const parentPath = path.slice(0, -1);
+    if (parentPath.length > 0) {
+      const parentNode = getNodeAtPath({
+        treeData,
+        path: parentPath,
+        getNodeKey: ({ treeIndex }) => treeIndex
+      })?.node;
+
+      if (parentNode) {
+        setSelectedNode({ node: parentNode, path: parentPath.join('-') });
+        setSelectedPath(parentPath);
+        onNodeSelect({
+          type: parentNode.type,
+          title: parentNode.title,
+          content: parentNode.content || '',
+          topic: parentPath[0]?.title || '',
+          source: "https://example.com/astronomy/order-of-planets-from-sun",
+          timestamp: "2025-03-19",
+          author: "John Doe",
+          isPreview: false,
+          shouldFocusContent: true
+        });
+      }
+    } else {
+      // If we deleted a root node, select the first available root node
+      if (treeData.length > 0) {
+        const rootNode = treeData[0];
+        const rootPath = [0];
+        setSelectedNode({ node: rootNode, path: rootPath.join('-') });
+        setSelectedPath(rootPath);
+        onNodeSelect({
+          type: rootNode.type,
+          title: rootNode.title,
+          content: rootNode.content || '',
+          topic: rootNode.title,
+          source: "https://example.com/astronomy/order-of-planets-from-sun",
+          timestamp: "2025-03-19",
+          author: "John Doe",
+          isPreview: false,
+          shouldFocusContent: true
+        });
+      }
+    }
   };
 
   const handleTitleChange = (node, path, newTitle) => {
@@ -401,7 +559,7 @@ function ContentTree({ onNodeSelect }) {
           <input
             ref={searchInputRef}
             className="w-full px-3 py-2 pr-16 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-100 focus:border-indigo-300 transition-all duration-200"
-            placeholder="Search the tree... (↑↓ to navigate, Enter to select, Esc to focus)"
+            placeholder="Search the tree"
             value={searchString}
             onChange={handleSearchChange}
           />
@@ -416,40 +574,31 @@ function ContentTree({ onNodeSelect }) {
         <div className="flex items-center justify-start gap-2 py-2">
           <button
             className={`action-button group relative ${!selectedNode ? 'opacity-50 cursor-not-allowed' : ''}`}
-            onClick={() => selectedPath && addNewNode(selectedPath, 'topic', true)}
+            onClick={() => selectedPath && addNewNode(selectedPath, 'topic')}
             disabled={!selectedNode}
-            title="Add sibling topic"
           >
-            <i className="fas fa-file-circle-plus text-violet-500 text-sm" />
-            <span className="tooltip">Add Sibling Topic</span>
+            <span className="flex items-center justify-center w-5 h-5 rounded bg-emerald-100 text-emerald-700 font-semibold text-sm">
+              T
+            </span>
+            <span className="tooltip">Add Subtopic</span>
           </button>
           <button
             className={`action-button group relative ${!selectedNode ? 'opacity-50 cursor-not-allowed' : ''}`}
             onClick={() => selectedPath && addNewNode(selectedPath, 'flashcard')}
             disabled={!selectedNode}
-            title="Add flashcard"
           >
-            <i className="fas fa-square-plus text-emerald-500 text-sm" />
-            <span className="tooltip">Add Flashcard Here</span>
+            <span className="flex items-center justify-center w-5 h-5 rounded bg-blue-100 text-blue-700 font-semibold text-sm">
+              L
+            </span>
+            <span className="tooltip">Add Flashcard</span>
           </button>
-          <button
-            className={`action-button group relative ${!selectedNode ? 'opacity-50 cursor-not-allowed' : ''}`}
-            onClick={() => selectedPath && addNewNode(selectedPath, 'topic')}
-            disabled={!selectedNode}
-            title="Add subtopic"
-          >
-            <i className="fas fa-folder-plus text-indigo-500 text-sm" />
-            <span className="tooltip">Add Subtopic Here</span>
-          </button>
-          <div className="h-4 w-px bg-gray-200 mx-1"></div>
           <button
             className={`action-button group relative ${!selectedNode ? 'opacity-50 cursor-not-allowed' : ''} hover:bg-red-50`}
-            onClick={() => selectedNode && selectedPath && handleDelete(selectedNode, selectedPath)}
+            onClick={() => selectedNode && handleDelete(selectedNode.node, selectedPath)}
             disabled={!selectedNode}
-            title="Delete selected"
           >
-            <i className="fas fa-trash-alt text-red-500 text-sm" />
-            <span className="tooltip">Delete Selected</span>
+            <i className="fas fa-trash text-red-500 text-lg" />
+            <span className="tooltip">Delete</span>
           </button>
         </div>
       </div>
