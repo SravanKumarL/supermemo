@@ -1,86 +1,88 @@
-import { useState, useEffect } from "react";
+import React from 'react';
 import "./index.css";
 
 function ContentContainer({ content }) {
-  const [contentObj, setContentObj] = useState(content);
-  const [isAnimating, setIsAnimating] = useState(false);
-
-  useEffect(() => {
-    setIsAnimating(true);
-    setContentObj(content);
-    const timer = setTimeout(() => setIsAnimating(false), 300);
-    return () => clearTimeout(timer);
-  }, [content]);
+  if (!content) return null;
 
   return (
-    <div className={`bg-white rounded-xl border-2 border-indigo-100 shadow-sm hover:shadow-md transition-all duration-300 ${
-      isAnimating ? 'opacity-0 translate-y-4' : 'opacity-100 translate-y-0'
-    }`}>
-      <div className="p-8 relative">
-        {/* Type Tags - Positioned Absolutely */}
-        <div className="absolute top-6 right-6 flex gap-2">
-          <span className={`px-3 py-1.5 text-sm rounded-full font-medium ${
-            contentObj.type === 'topic' 
-              ? 'bg-violet-100 text-violet-800' 
-              : 'bg-emerald-100 text-emerald-800'
-          } transform transition-transform duration-200 hover:scale-105`}>
-            {contentObj.type}
-          </span>
-          {contentObj.topic && (
-            <span className={`px-3 py-1.5 text-sm rounded-full font-medium bg-gray-100 text-gray-800 transform transition-transform duration-200 hover:scale-105`}>
-              {contentObj.topic}
-            </span>
-          )}
+    <div className={`content-container p-6 relative ${content.isPreview ? 'bg-blue-50/30 border-2 border-blue-200 rounded-lg' : ''}`}>
+      {content.isPreview && (
+        <div className="absolute top-3 right-3 flex items-center gap-2">
+          <div className="text-sm font-medium text-blue-600 bg-blue-100 px-3 py-1 rounded-full">
+            Preview Mode
+          </div>
+          <div className="text-sm text-blue-500">
+            Press Enter to select
+          </div>
         </div>
+      )}
 
-        {/* Title Section */}
-        <div className="mb-8 pr-48">
-          <h2 
-            className="text-3xl font-bold text-gray-900 hover:bg-indigo-50 p-3 -ml-3 rounded-lg transition-all duration-200" 
-            contentEditable
-            suppressContentEditableWarning
+      <div className="flex items-start justify-between mb-4">
+        <div className="flex-1 pr-32">
+          <h1 
+            className={`text-2xl font-semibold mb-2 ${content.isPreview ? 'text-blue-900' : 'text-gray-900'}`}
+            contentEditable={!content.isPreview}
+            suppressContentEditableWarning={true}
           >
-            {contentObj.title}
-          </h2>
-        </div>
-        
-        {/* Content Section */}
-        <div 
-          className="prose prose-lg max-w-none mb-8 hover:bg-indigo-50 p-3 -ml-3 rounded-lg transition-all duration-200" 
-          contentEditable
-          suppressContentEditableWarning
-        >
-          {contentObj.content}
-        </div>
-
-        {/* Metadata Section */}
-        <div className="border-t border-indigo-100 pt-6 space-y-3 text-sm">
-          <div className="flex items-center text-gray-600 group transform transition-all duration-200 hover:translate-x-2">
-            <i className="fas fa-link w-6 text-indigo-400 group-hover:text-indigo-500 transition-colors duration-200"></i>
-            <span className="mr-2">Source:</span>
-            <a 
-              href={contentObj.source} 
-              className="text-indigo-600 hover:text-indigo-700 hover:underline transition-colors duration-200"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              {contentObj.source}
-            </a>
-          </div>
-
-          <div className="flex items-center text-gray-600 group transform transition-all duration-200 hover:translate-x-2">
-            <i className="fas fa-clock w-6 text-indigo-400 group-hover:text-indigo-500 transition-colors duration-200"></i>
-            <span className="mr-2">Last updated:</span>
-            <span>{contentObj.timestamp}</span>
-          </div>
-
-          <div className="flex items-center text-gray-600 group transform transition-all duration-200 hover:translate-x-2">
-            <i className="fas fa-user w-6 text-indigo-400 group-hover:text-indigo-500 transition-colors duration-200"></i>
-            <span className="mr-2">Author:</span>
-            <span>{contentObj.author}</span>
+            {content.title}
+          </h1>
+          <div className="flex items-center gap-2 mb-4">
+            <span className={`text-xs px-2 py-0.5 rounded-full ${
+              content.type === 'topic' ? 'bg-violet-100 text-violet-800' : 'bg-emerald-100 text-emerald-800'
+            }`}>
+              {content.type}
+            </span>
+            <span className="text-sm text-gray-500">{content.topic}</span>
           </div>
         </div>
       </div>
+
+      <div 
+        className={`prose max-w-none mb-8 ${content.isPreview ? 'text-blue-800' : 'text-gray-900'}`}
+        contentEditable={!content.isPreview}
+        suppressContentEditableWarning={true}
+      >
+        {content.content}
+      </div>
+
+      {!content.isPreview && (
+        <div className="mt-4 pt-4 border-t border-gray-100">
+          <div className="flex items-center gap-6 text-xs">
+            <a 
+              href={content.source} 
+              className="text-indigo-400 hover:text-indigo-600 transition-colors duration-200 flex items-center gap-1 group"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <svg className="w-3.5 h-3.5 text-indigo-300 group-hover:text-indigo-500 transition-colors duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+              </svg>
+              {content.source}
+            </a>
+
+            <div className="flex items-center gap-1 text-amber-400 group">
+              <svg className="w-3.5 h-3.5 text-amber-300 group-hover:text-amber-500 transition-colors duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              {content.timestamp}
+            </div>
+
+            <div className="flex items-center gap-1 text-emerald-400 group">
+              <svg className="w-3.5 h-3.5 text-emerald-300 group-hover:text-emerald-500 transition-colors duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+              {content.author}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {content.isPreview && (
+        <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
+          <div className="absolute -top-px left-0 w-full h-1 bg-gradient-to-r from-blue-200 via-blue-400 to-blue-200 opacity-50"></div>
+          <div className="absolute -bottom-px left-0 w-full h-1 bg-gradient-to-r from-blue-200 via-blue-400 to-blue-200 opacity-50"></div>
+        </div>
+      )}
     </div>
   );
 }
