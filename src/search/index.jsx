@@ -69,7 +69,7 @@ function Search({ onSelect }) {
     const parts = text.split(new RegExp(`(${query})`, 'gi'));
     return parts.map((part, index) => 
       part.toLowerCase() === query.toLowerCase() 
-        ? <span key={index} className="bg-yellow-200 font-medium">{part}</span>
+        ? <span key={index} className="bg-yellow-100 text-yellow-900 font-medium">{part}</span>
         : part
     );
   };
@@ -110,18 +110,18 @@ function Search({ onSelect }) {
 
   return (
     <div className="relative" ref={searchRef}>
-      <div className="relative">
+      <div className="relative group">
         <input
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="Search topics, extracts, and flashcards..."
-          className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white shadow-sm hover:shadow-md transition-all duration-200"
+          className="w-full px-5 py-4 pr-12 border-2 border-indigo-100 rounded-xl focus:outline-none focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100 bg-white shadow-sm group-hover:shadow-md transition-all duration-200 placeholder-gray-400"
           onFocus={() => setIsOpen(true)}
         />
         <button 
-          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-blue-500 transition-colors duration-200"
+          className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-indigo-500 transition-colors duration-200"
           onClick={() => {
             setSearchQuery("");
             setIsOpen(false);
@@ -139,40 +139,58 @@ function Search({ onSelect }) {
       {isOpen && (searchResults.length > 0 || (searchQuery && searchResults.length === 0)) && (
         <div 
           ref={resultsRef}
-          className="absolute w-full mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-96 overflow-y-auto transition-all duration-200 animate-slideDown"
+          style={{
+            position: 'absolute',
+            top: '100%',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            width: '100%',
+            zIndex: 9999,
+          }}
+          className="mt-2 bg-white border border-indigo-100 rounded-xl shadow-2xl max-h-[60vh] overflow-y-auto transition-all duration-200 animate-slideDown"
         >
           {searchResults.length > 0 ? (
             searchResults.map((result, index) => (
               <div 
                 key={index} 
-                className={`p-3 cursor-pointer border-b last:border-b-0 border-gray-100 transition-all duration-200 ${
+                className={`p-4 cursor-pointer border-b last:border-b-0 border-indigo-50 transition-all duration-200 relative ${
                   index === selectedIndex 
-                    ? 'bg-blue-50' 
-                    : 'hover:bg-blue-50'
+                    ? 'bg-indigo-50' 
+                    : 'hover:bg-indigo-50'
                 }`}
                 onClick={() => handleResultClick(result)}
                 onMouseEnter={() => setSelectedIndex(index)}
               >
-                <div className="flex items-center gap-2">
-                  <span className={`px-2 py-1 text-xs rounded-full ${
-                    result.type === 'Topic' 
-                      ? 'bg-blue-100 text-blue-800' 
-                      : 'bg-green-100 text-green-800'
-                  } font-medium transition-colors duration-200`}>
-                    {result.type}
-                  </span>
-                  <span className="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-800 font-medium">
-                    {result.category}
-                  </span>
-                </div>
-                <span className="block mt-1 font-medium text-gray-800">
+                {/* Type Tag - Positioned Absolutely */}
+                <span className={`absolute top-3 right-3 px-2 py-1 text-xs rounded-full font-medium ${
+                  result.type === 'Topic' 
+                    ? 'bg-violet-100 text-violet-800' 
+                    : 'bg-emerald-100 text-emerald-800'
+                } transition-colors duration-200`}>
+                  {result.type}
+                </span>
+
+                {/* Category Tag */}
+                <span className="inline-block px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-800 font-medium mb-2">
+                  {result.category}
+                </span>
+
+                {/* Title */}
+                <span className="block text-gray-900 font-medium pr-20">
                   {highlightMatch(result.title, searchQuery)}
                 </span>
+
+                {/* Content Preview */}
+                <p className="mt-1 text-sm text-gray-500 line-clamp-1">
+                  {result.content}
+                </p>
               </div>
             ))
           ) : (
-            <div className="p-4 text-center text-gray-500 animate-fadeIn">
-              No results found for "{searchQuery}"
+            <div className="p-6 text-center text-gray-500 animate-fadeIn">
+              <i className="fas fa-search mb-2 text-2xl text-gray-400"></i>
+              <p>No results found for "{searchQuery}"</p>
+              <p className="text-sm mt-1 text-gray-400">Try adjusting your search terms</p>
             </div>
           )}
         </div>

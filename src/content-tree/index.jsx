@@ -46,8 +46,6 @@ function ContentTree({ onNodeSelect }) {
   ]);
 
   const [searchString, setSearchString] = useState("");
-  const [searchFocusIndex, setSearchFocusIndex] = useState(0);
-  const [searchFoundCount, setSearchFoundCount] = useState(null);
 
   const handleTreeChange = (treeData) => {
     setTreeData(treeData);
@@ -73,7 +71,7 @@ function ContentTree({ onNodeSelect }) {
           type: node.type,
           title: node.title,
           content: node.content,
-          topic: path[0]?.title || "General",
+          topic: path[0]?.title,
           source: "https://example.com/astronomy/order-of-planets-from-sun",
           timestamp: "2025-03-19",
           author: "John Doe"
@@ -83,7 +81,7 @@ function ContentTree({ onNodeSelect }) {
     className: `cursor-pointer transition-all duration-200 hover:bg-blue-50 ${node.type ? 'has-content' : ''}`,
     icons: node.type ? [
       <div key="type" className={`text-xs px-2 py-0.5 rounded-full ${
-        node.type === 'topic' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'
+        node.type === 'topic' ? 'bg-violet-100 text-violet-800' : 'bg-emerald-100 text-emerald-800'
       }`}>
         {node.type}
       </div>
@@ -94,47 +92,43 @@ function ContentTree({ onNodeSelect }) {
   }), [onNodeSelect]);
 
   return (
-    <div className="content-tree-container bg-white rounded-lg shadow-md">
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="text-xl font-semibold">Content Tree</h3>
-        <div className="space-x-2">
-          <button
-            className="px-3 py-1 text-sm bg-blue-100 text-blue-800 rounded-full hover:bg-blue-200 transition-colors duration-200"
-            onClick={() => toggleNodeExpansion(true)}
-          >
-            Expand All
-          </button>
-          <button
-            className="px-3 py-1 text-sm bg-gray-100 text-gray-800 rounded-full hover:bg-gray-200 transition-colors duration-200"
-            onClick={() => toggleNodeExpansion(false)}
-          >
-            Collapse All
-          </button>
+    <div className="content-tree-container">
+      <div className="content-tree-header">
+        <div className="flex justify-between items-center">
+          <h3 className="text-xl font-semibold text-gray-900">Content Tree</h3>
+          <div className="space-x-2">
+            <button
+              className="px-3 py-1 text-sm bg-indigo-100 text-indigo-800 rounded-full hover:bg-indigo-200 transition-colors duration-200"
+              onClick={() => toggleNodeExpansion(true)}
+            >
+              Expand All
+            </button>
+            <button
+              className="px-3 py-1 text-sm bg-gray-100 text-gray-800 rounded-full hover:bg-gray-200 transition-colors duration-200"
+              onClick={() => toggleNodeExpansion(false)}
+            >
+              Collapse All
+            </button>
+          </div>
         </div>
       </div>
 
-      <div className="mb-4">
+      <div className="content-tree-search">
         <input
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-100 focus:border-indigo-300 transition-all duration-200"
           placeholder="Search the tree..."
           value={searchString}
           onChange={handleSearchChange}
         />
       </div>
 
-      <div style={{ height: "calc(100vh - 200px)" }}>
+      <div className="content-tree-content">
         <SortableTree
           treeData={treeData}
           onChange={handleTreeChange}
           searchQuery={searchString}
-          searchFocusOffset={searchFocusIndex}
+          searchFocusOffset={0}
           isVirtualized={true}
-          searchFinishCallback={(matches) => {
-            setSearchFoundCount(matches.length);
-            setSearchFocusIndex(
-              matches.length > 0 ? searchFocusIndex % matches.length : 0
-            );
-          }}
           canDrag={true}
           canDrop={true}
           generateNodeProps={generateNodeProps}
@@ -143,12 +137,6 @@ function ContentTree({ onNodeSelect }) {
           className="content-tree"
         />
       </div>
-
-      {searchFoundCount > 0 && (
-        <div className="mt-2 text-sm text-gray-600">
-          {searchFoundCount} matches found
-        </div>
-      )}
     </div>
   );
 }

@@ -1,95 +1,65 @@
 .content-tree-container {
-  padding: 1rem;
-  height: 100%;
-  overflow-y: auto;
+  @apply bg-white rounded-xl border-2 border-indigo-100 shadow-sm hover:shadow-md transition-all duration-300;
+  height: calc(100vh - 2rem);
 }
 
-.content-tree {
-  font-family: 'Roboto', sans-serif;
+.content-tree-header {
+  @apply p-4 border-b border-indigo-100;
 }
 
-.content-tree .rst__row {
-  padding: 0 4px;
+.content-tree-search {
+  @apply p-4;
 }
 
-.content-tree .rst__rowWrapper {
-  padding: 2px 0;
+.content-tree-content {
+  height: calc(100% - 8rem);
+  @apply p-4;
 }
 
-.content-tree .rst__rowContents {
-  border: 1px solid #e5e7eb;
-  border-radius: 6px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-  background-color: white;
-  min-height: 40px;
-  padding: 4px 0;
+/* Override react-sortable-tree styles */
+.rst__tree {
+  background: transparent !important;
 }
 
-.content-tree .rst__rowContents:hover {
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+.rst__node {
+  @apply my-1;
 }
 
-.content-tree .rst__moveHandle {
-  border: none;
-  border-top-left-radius: 6px;
-  border-bottom-left-radius: 6px;
-  background: #f3f4f6;
-  width: 36px;
+.rst__rowWrapper {
+  @apply px-2 py-1 rounded-lg;
 }
 
-.content-tree .rst__moveHandle::after {
-  background-image: url('data:image/svg+xml;charset=UTF-8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="%236B7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>');
-  width: 24px;
-  height: 24px;
-  background-size: contain;
-  top: 50%;
-  transform: translateY(-50%);
+.rst__row {
+  @apply px-2;
 }
 
-.content-tree .rst__rowLabel {
-  padding: 0 8px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
+.rst__moveHandle {
+  @apply hidden;
 }
 
-.content-tree .rst__rowTitle {
-  font-weight: 500;
-  color: #1f2937;
-  padding: 4px 0;
-  flex: 1;
+.rst__rowContents {
+  @apply bg-transparent border-0 shadow-none rounded-lg min-w-0 box-border;
 }
 
-.content-tree .has-content .rst__rowTitle {
-  color: #2563eb;
-  cursor: pointer;
+.rst__rowTitle {
+  @apply font-medium;
 }
 
-.content-tree .rst__rowSearchMatch {
-  outline: none;
-  background-color: rgba(255, 226, 143, 0.4);
+.rst__rowSearchMatch {
+  @apply outline-none;
+  box-shadow: 0 0 0 2px theme('colors.indigo.200');
 }
 
-.content-tree .rst__rowSearchFocus {
-  outline: none;
-  background-color: rgba(255, 226, 143, 0.8);
+.rst__rowSearchFocus {
+  @apply outline-none;
+  box-shadow: 0 0 0 2px theme('colors.indigo.400');
 }
 
-.content-tree .rst__lineHalfHorizontalRight::before,
-.content-tree .rst__lineFullVertical::after,
-.content-tree .rst__lineHalfVerticalTop::after,
-.content-tree .rst__lineHalfVerticalBottom::after {
-  background-color: #d1d5db;
+.has-content {
+  @apply relative;
 }
 
-.content-tree .rst__collapseButton,
-.content-tree .rst__expandButton {
-  border-radius: 4px;
-  border: 1px solid #e5e7eb;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-  width: 20px;
-  height: 20px;
-  padding: 0;
-  top: 50%;
-  transform: translateY(-50%);
+.has-content::after {
+  content: '';
+  @apply absolute right-2 top-1/2 w-2 h-2 bg-indigo-400 rounded-full transform -translate-y-1/2;
 }
