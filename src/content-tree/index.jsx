@@ -1,8 +1,6 @@
 /**
  * ContentTree Component
- * 
- * A hierarchical tree view component that displays and manages content in a tree structure.
- * Supports topics and flashcards, with drag-and-drop reordering, search, and inline editing.
+ * With improved search clearing functionality
  */
 
 import React, { useState, useCallback, useEffect, useRef } from "react";
@@ -88,6 +86,14 @@ function ContentTree({ onNodeSelect }) {
   
   // Animation effect for node selection
   const [animatingNode, setAnimatingNode] = useState(null);
+
+  // Function to clear search results and reset search state
+  const clearSearch = () => {
+    setSearchString("");
+    setSearchFocusIndex(0);
+    setSearchFoundCount(null);
+    setMatches([]);
+  };
 
   // Effect to focus root node on mount
   useEffect(() => {
@@ -225,14 +231,26 @@ function ContentTree({ onNodeSelect }) {
               isPreview: false,
               shouldFocusContent: true
             });
+            
+            // Set node as selected
+            setSelectedNode({ 
+              node: matchingNodes.node, 
+              path: matchingNodes.path.join('-') 
+            });
+            setSelectedPath(matchingNodes.path);
+            
             // Set animation target
             setAnimatingNode(matchingNodes.node.path);
             setTimeout(() => setAnimatingNode(null), 500);
+            
+            // Clear search after selection
+            clearSearch();
           }
           break;
         case 'Escape':
           e.preventDefault();
-          searchInputRef.current?.focus();
+          // Clear search when Escape is pressed
+          clearSearch();
           break;
         case 'ArrowDown':
           e.preventDefault();
@@ -408,6 +426,11 @@ function ContentTree({ onNodeSelect }) {
               isPreview: false,
               shouldFocusContent: true
             });
+            
+            // Clear search when selecting a node directly
+            if (searchString) {
+              clearSearch();
+            }
           }
           setLastClickTime(currentTime);
         }

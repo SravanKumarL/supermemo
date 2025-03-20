@@ -1,21 +1,16 @@
 /**
- * ContentContainer Component
- * 
- * A component that displays and allows editing of content items (topics and flashcards).
- * Fixed to prevent overlapping of Preview Mode and topic tag.
+ * ContentContainer Component with Markdown Editor
  */
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useState } from 'react';
 import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
 import "./index.css";
+import MDEditor from '@uiw/react-md-editor';
 
 function ContentContainer({ content, onContentChange }) {
-  // Early return if no content is provided
   if (!content) return null;
 
-  // Refs and state management
-  const contentRef = useRef(null);
   const [selectedDate, setSelectedDate] = useState(
     content.timestamp ? new Date(content.timestamp) : null
   );
@@ -23,16 +18,26 @@ function ContentContainer({ content, onContentChange }) {
   const [isEditingAuthor, setIsEditingAuthor] = useState(false);
   const [sourceValue, setSourceValue] = useState(content.source || '');
   const [authorValue, setAuthorValue] = useState(content.author || '');
+  const [markdownContent, setMarkdownContent] = useState(content.content || '');
 
-  /**
-   * Validates if a string is a valid URL
-   */
+  // Basic validation
   const isValidUrl = (string) => {
     try {
       new URL(string);
       return true;
     } catch (_) {
       return false;
+    }
+  };
+
+  // Event handlers
+  const handleContentChange = (value) => {
+    setMarkdownContent(value);
+    if (onContentChange) {
+      onContentChange({
+        ...content,
+        content: value
+      });
     }
   };
 
@@ -55,20 +60,6 @@ function ContentContainer({ content, onContentChange }) {
       });
     }
   };
-
-  // Effect to handle content focus when selected from search
-  useEffect(() => {
-    if (content?.shouldFocusContent && !content.isPreview && contentRef.current) {
-      contentRef.current.focus();
-      // Place cursor at the end of the content
-      const range = document.createRange();
-      const selection = window.getSelection();
-      range.selectNodeContents(contentRef.current);
-      range.collapse(false);
-      selection.removeAllRanges();
-      selection.addRange(range);
-    }
-  }, [content]);
 
   const handleDateChange = (date) => {
     setSelectedDate(date);
@@ -99,8 +90,20 @@ function ContentContainer({ content, onContentChange }) {
   };
 
   return (
-    <div className={`content-container bg-slate-100 rounded-xl shadow-sm overflow-hidden ${content.isPreview ? 'border-2 border-blue-400' : ''} relative`}>
-      {/* Content Header with Repositioned Preview Mode */}
+    <div className={`content-container bg-slate-100 rounded-xl shadow-sm overflow-hidden ${content.isPreview ? 'border-2 border-blue-400' : ''}`} data-color-mode="light">
+      {/* Preview Mode Indicator */}
+      {content.isPreview && (
+        <div className="absolute top-3 right-3 flex items-center gap-2">
+          <div className="text-sm font-medium text-blue-700 bg-blue-200 px-3 py-1 rounded-full">
+            Preview Mode
+          </div>
+          <div className="text-sm text-blue-600">
+            Press Enter to select
+          </div>
+        </div>
+      )}
+
+      {/* Content Header */}
       <div className={`p-6 ${colorScheme.header}`}>
         <div className="flex items-start justify-between mb-4">
           <div className="flex-1">
@@ -112,41 +115,35 @@ function ContentContainer({ content, onContentChange }) {
               {content.title}
             </h1>
           </div>
-          
-          {/* Fixed layout for type tag and preview mode to prevent overlap */}
-          <div className="flex flex-col items-end gap-2">
-            {/* Type and Topic Tags */}
-            <div className="flex items-center gap-2">
-              <span className={`text-xs px-2 py-0.5 rounded-full ${colorScheme.tag}`}>
-                {content.type}
-              </span>
-              <span className={`text-sm ${colorScheme.topic}`}>{content.topic}</span>
-            </div>
-            
-            {/* Preview Mode Indicator - Now in a more appropriate position */}
-            {content.isPreview && (
-              <div className="flex items-center gap-2 mt-2">
-                <div className="text-sm font-medium text-blue-700 bg-blue-200 px-3 py-1 rounded-full">
-                  Preview Mode
-                </div>
-                <div className="text-sm text-blue-600 whitespace-nowrap">
-                  Press Enter to select
-                </div>
-              </div>
-            )}
+          <div className="flex items-center gap-2">
+            <span className={`text-xs px-2 py-0.5 rounded-full ${colorScheme.tag}`}>
+              {content.type}
+            </span>
+            <span className={`text-sm ${colorScheme.topic}`}>{content.topic}</span>
           </div>
         </div>
       </div>
 
       {/* Main Content Area */}
-      <div 
-        ref={contentRef}
-        className={`prose max-w-none p-6 bg-white border-y ${colorScheme.border} min-h-[300px] ${content.isPreview ? 'text-blue-800' : 'text-slate-800'} content-editable-placeholder`}
-        contentEditable={!content.isPreview}
-        suppressContentEditableWarning={true}
-        data-placeholder={content.type === 'topic' && !content.isPreview ? "Add content for this topic..." : ""}
-      >
-        {content.content}
+      <div className="bg-white border-y border-gray-200">
+        {content.isPreview ? (
+          <div className="markdown-preview p-6 min-h-[300px]">
+            <MDEditor.Markdown source={content.content || ''} />
+          </div>
+        ) : (
+          <div className="markdown-editor-container p-2">
+            <MDEditor
+              value={markdownContent}
+              onChange={handleContentChange}
+              height={350}
+              preview="edit"
+              hideToolbar={false}
+              textareaProps={{
+                placeholder: content.type === 'topic' ? "Add content for this topic..." : ""
+              }}
+            />
+          </div>
+        )}
       </div>
 
       {/* Content Footer - Only shown in edit mode */}
@@ -258,14 +255,6 @@ function ContentContainer({ content, onContentChange }) {
               )}
             </div>
           </div>
-        </div>
-      )}
-
-      {/* Preview Mode Decorative Elements */}
-      {content.isPreview && (
-        <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
-          <div className="absolute -top-px left-0 w-full h-0.5 bg-gradient-to-r from-blue-400 via-blue-600 to-blue-400 opacity-50"></div>
-          <div className="absolute -bottom-px left-0 w-full h-0.5 bg-gradient-to-r from-blue-400 via-blue-600 to-blue-400 opacity-50"></div>
         </div>
       )}
     </div>
