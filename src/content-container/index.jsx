@@ -2,7 +2,7 @@
  * ContentContainer Component with Markdown Editor
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
 import "./index.css";
@@ -19,6 +19,34 @@ function ContentContainer({ content, onContentChange }) {
   const [sourceValue, setSourceValue] = useState(content.source || '');
   const [authorValue, setAuthorValue] = useState(content.author || '');
   const [markdownContent, setMarkdownContent] = useState(content.content || '');
+  const editorRef = useRef(null);
+
+  // Update markdownContent when content changes
+  useEffect(() => {
+    setMarkdownContent(content.content || '');
+  }, [content.content]);
+
+  // Focus content field when shouldFocusContent is true or content changes
+  useEffect(() => {
+    if (content.shouldFocusContent && editorRef.current) {
+      // Try to find the textarea in the wmde-markdown-var container
+      const textarea = editorRef.current.querySelector('.w-md-editor-text-input textarea');
+      if (textarea) {
+        // Use setTimeout to ensure the editor is fully rendered
+        setTimeout(() => {
+          textarea.focus();
+        }, 0);
+      } else {
+        // Fallback: try to find any textarea in the editor
+        const fallbackTextarea = editorRef.current.querySelector('textarea');
+        if (fallbackTextarea) {
+          setTimeout(() => {
+            fallbackTextarea.focus();
+          }, 0);
+        }
+      }
+    }
+  }, [content.shouldFocusContent, content.title, content.type]);
 
   // Basic validation
   const isValidUrl = (string) => {
@@ -131,7 +159,7 @@ function ContentContainer({ content, onContentChange }) {
             <MDEditor.Markdown source={content.content || ''} />
           </div>
         ) : (
-          <div className="markdown-editor-container p-2">
+          <div className="markdown-editor-container p-2" ref={editorRef}>
             <MDEditor
               value={markdownContent}
               onChange={handleContentChange}
