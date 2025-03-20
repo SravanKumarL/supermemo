@@ -56,11 +56,25 @@
 .markdown-editor-container {
   /* Remove the border that comes with the component since we handle it at the container level */
   border: none;
+  transition: all 0.3s ease;
 }
 
 .markdown-editor-container .w-md-editor {
   border: none;
   box-shadow: none;
+  transition: all 0.3s ease;
+  border-radius: 8px;
+  border: 1px solid transparent;
+}
+
+.markdown-editor-container .w-md-editor:hover {
+  border-color: #e5e7eb;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.markdown-editor-container .w-md-editor:focus-within {
+  border-color: #d1d5db;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05), 0 0 0 3px rgba(79, 70, 229, 0.1);
 }
 
 /* Increase contrast for better readability */
@@ -182,9 +196,45 @@
   border-bottom: 1px solid #e5e7eb;
 }
 
+/* Add transition to the toolbar */
+.w-md-editor-toolbar {
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  transform-origin: top;
+}
+
+.w-md-editor.w-md-editor-show-toolbar .w-md-editor-toolbar {
+  opacity: 1;
+  transform: scaleY(1);
+  visibility: visible;
+  max-height: 200px; /* Allow enough height for toolbar */
+}
+
+.w-md-editor:not(.w-md-editor-show-toolbar) .w-md-editor-toolbar {
+  opacity: 0;
+  transform: scaleY(0.8);
+  height: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
 /* Style the editor height */
 .w-md-editor-content {
   min-height: 300px;
+}
+
+/* Custom toolbar visibility control */
+.show-toolbar .w-md-editor-toolbar {
+  display: flex !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  height: auto !important;
+  padding: 8px !important;
+  overflow: visible !important;
+  transform: none !important;
+}
+
+.hide-toolbar .w-md-editor-toolbar {
+  display: none !important;
 }
 
 /* Ensure the editor is visible and fills space */
@@ -192,4 +242,20 @@
   display: flex;
   flex-direction: column;
   height: 100%;
+}
+
+/* Enhanced button styling */
+.markdown-editor-container button {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
+}
+
+.markdown-editor-container button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.markdown-editor-container button:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
