@@ -24,6 +24,7 @@ function Search({ onSelect }) {
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const searchRef = useRef(null);
   const resultsRef = useRef(null);
+  const inputRef = useRef(null);
   
   /**
    * Simulated database of searchable items
@@ -117,9 +118,13 @@ function Search({ onSelect }) {
    */
   const handleResultClick = (result) => {
     onSelect(result);
-    setSearchQuery("");
     setIsOpen(false);
     setSelectedIndex(-1);
+    // Focus the input after selection
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
+    setSearchQuery("");
   };
 
   /**
@@ -158,9 +163,13 @@ function Search({ onSelect }) {
       {/* Search Input */}
       <div className="relative group">
         <input
+          ref={inputRef}
           type="text"
           value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
+          onChange={(e) => {
+            setSearchQuery(e.target.value);
+            setIsOpen(true);
+          }}
           onKeyDown={handleKeyDown}
           placeholder="Search topics, extracts, and flashcards..."
           className="w-full px-5 py-4 pr-12 border-2 border-indigo-100 rounded-xl focus:outline-none focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100 bg-white shadow-sm group-hover:shadow-md transition-all duration-200 placeholder-gray-400"
@@ -171,8 +180,9 @@ function Search({ onSelect }) {
           className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-indigo-500 transition-colors duration-200"
           onClick={() => {
             setSearchQuery("");
-            setIsOpen(false);
-            setSelectedIndex(-1);
+            if (inputRef.current) {
+              inputRef.current.focus();
+            }
           }}
         >
           {searchQuery ? (
