@@ -259,3 +259,33 @@
   transform: translateY(0);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
+
+/* Add support for markdown highlight syntax */
+.w-md-editor-preview code[data-mark="true"],
+.w-md-editor-preview mark,
+.markdown-preview mark,
+.w-md-editor-text mark,
+.w-md-editor-preview p mark {
+  background-color: var(--extract-color) !important;
+  border-bottom: 2px dashed var(--extract-border) !important;
+  padding: 0 2px !important;
+  color: inherit !important;
+  font-weight: inherit !important;
+}
+
+/* Add this to target the extracted text which is now bold */
+.markdown-preview strong,
+.w-md-editor-preview strong {
+  background-color: var(--extract-color) !important;
+  font-weight: normal !important;
+  border-bottom: 2px dashed var(--extract-border) !important;
+  padding: 0 2px !important;
+}
+
+/* Ensure we don't affect all bold text in edit mode */
+.extracted-text {
+  background-color: var(--extract-color) !important;
+  font-weight: normal !important;
+  border-bottom: 2px dashed var(--extract-border) !important;
+  padding: 0 2px !important;
+}

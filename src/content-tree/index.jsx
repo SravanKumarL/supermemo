@@ -438,7 +438,8 @@ function ContentTree({ onNodeSelect }) {
       className: `supermemo-node ${isSelected ? 'supermemo-node-selected' : ''} 
                  ${searchString && node.searchIndex === searchFocusIndex ? 'supermemo-node-search-focus' : ''} 
                  ${node.searchIndex !== undefined ? 'supermemo-node-search-match' : ''}
-                 ${isAnimating ? 'animate-pulse' : ''}`,
+                 ${isAnimating ? 'animate-pulse' : ''}
+                 ${node.isExtracted ? 'supermemo-node-extracted' : ''}`,
       title: (
         <div className="supermemo-node-content">
           {isEditing ? (
@@ -490,6 +491,54 @@ function ContentTree({ onNodeSelect }) {
     document.addEventListener('click', handleClickOutside);
     return () => document.removeEventListener('click', handleClickOutside);
   }, [editingNode]);
+
+  /**
+   * Creates a new node from extracted text
+   * @param {Object} params - Extract parameters
+   * @returns {Object} The newly created node
+   */
+  const handleExtract = ({ parentNode, extractedText, title, type = 'topic' }) => {
+    if (!selectedNode) return null;
+    
+    // Create a new node with clean content (no highlighting)
+    const newNode = {
+      title: title || `Extract from ${parentNode.title}`,
+      type: type,
+      content: extractedText, // This should be the clean text without formatting
+      children: type === 'topic' ? [] : undefined,
+      isExtracted: true, // Add this flag to indicate it's an extract
+      parentId: selectedNode.path, // Reference to parent for styling
+      extracts: [] // Initialize with empty extracts
+    };
+    
+    const targetPath = selectedNode.path.split('-').map(Number);
+    
+    // Add the new node to the tree
+    const updatedTreeData = addNodeUnderParent({
+      treeData,
+      parentKey: targetPath[targetPath.length - 1],
+      expandParent: true,
+      getNodeKey: ({ treeIndex }) => treeIndex,
+      newNode
+    }).treeData;
+    
+    setTreeData(updatedTreeData);
+    
+    // Now return the newly created node so it can be selected
+    return newNode;
+  };
+
+  // Fix the useEffect that exposes the handleExtract function
+  // The issue is likely that the useEffect is missing a return statement and proper dependencies
+  useEffect(() => {
+    // Make the handleExtract function available globally
+    window.contentTreeRef = { handleExtract };
+    
+    // Clean up when component unmounts
+    return () => {
+      window.contentTreeRef = null;
+    };
+  }, [selectedNode, treeData]); // Add these dependencies so it updates correctly
 
   return (
     <div className="supermemo-tree-container">

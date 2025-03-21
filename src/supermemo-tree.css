@@ -379,3 +379,49 @@
 .rst__expandButton {
   display: none !important;
 }
+
+/* Styling for extracted nodes - making them match regular nodes */
+.supermemo-node-extracted {
+  /* No special styling to match other nodes */
+  background-color: transparent;
+  /* Remove border to match other nodes */
+  border-left: none;
+}
+
+.supermemo-node-extracted .supermemo-node-title {
+  /* Remove italic and color to match other nodes */
+  font-style: normal;
+  color: inherit;
+}
+
+/* For the highlighted text within the content */
+.bg-yellow-100,
+span[class*="bg-yellow-100"],
+.markdown-preview .bg-yellow-100,
+.w-md-editor .bg-yellow-100,
+.w-md-editor-preview .bg-yellow-100,
+.w-md-editor-text-pre .bg-yellow-100,
+.w-md-editor-text .bg-yellow-100,
+.w-md-editor-text-input .bg-yellow-100,
+mark.bg-yellow-100 {
+  background-color: var(--extract-color) !important;
+  border-bottom: 2px dashed var(--extract-border) !important;
+  padding: 0 2px !important;
+  display: inline !important;
+}
+
+/* Additional specific selector for the editor content */
+.w-md-editor-text-input mark,
+.w-md-editor-text-pre mark,
+.w-md-editor-preview mark,
+.markdown-preview mark {
+  background-color: var(--extract-color) !important;
+  border-bottom: 2px dashed var(--extract-border) !important;
+  padding: 0 2px !important;
+}
+
+/* Target the specific way the MDEditor might render HTML */
+[data-slate-string="true"] mark,
+[data-slate-leaf] mark {
+  background-color: var(--extract-color) !important;
+}

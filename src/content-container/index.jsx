@@ -8,7 +8,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import "./index.css";
 import MDEditor from '@uiw/react-md-editor';
 
-function ContentContainer({ content, onContentChange }) {
+function ContentContainer({ content, onContentChange, onExtract }) {
   if (!content) return null;
 
   const [selectedDate, setSelectedDate] = useState(
@@ -22,11 +22,56 @@ function ContentContainer({ content, onContentChange }) {
   const editorRef = useRef(null);
   const [isEditorFocused, setIsEditorFocused] = useState(false);
   const [showToolbar, setShowToolbar] = useState(false);
+  const [selectedText, setSelectedText] = useState('');
+  const [selectionRange, setSelectionRange] = useState(null);
+  const [extracts, setExtracts] = useState([]);
 
   // Update markdownContent when content changes
   useEffect(() => {
-    setMarkdownContent(content.content || '');
-  }, [content.content]);
+    // Initialize extracts from content if they exist
+    if (content && content.extracts) {
+      setExtracts(content.extracts);
+    } else {
+      setExtracts([]);
+    }
+    
+    // Only apply highlighting for parent nodes, never for extracted nodes
+    if (content) {
+      // For extracted nodes, always use plain content without highlighting
+      if (content.isExtracted) {
+        setMarkdownContent(content.content || '');
+      } 
+      // For parent nodes with extracts, apply highlighting
+      else if (content.extracts && content.extracts.length > 0) {
+        let highlightedContent = content.content || '';
+        let needsUpdate = false;
+        
+        // Apply highlighting to each extract if not already highlighted
+        content.extracts.forEach(extract => {
+          // Only apply highlighting if extract exists and isn't already highlighted
+          if (highlightedContent.includes(extract) && 
+              !highlightedContent.includes(`**${extract}**`)) {
+            highlightedContent = highlightedContent.replace(
+              extract,
+              `**${extract}**`
+            );
+            needsUpdate = true;
+          }
+        });
+        
+        // Update content with highlighting if needed
+        if (needsUpdate) {
+          setMarkdownContent(highlightedContent);
+        } else {
+          setMarkdownContent(content.content || '');
+        }
+      } 
+      // For normal nodes, use plain content
+      else {
+        setMarkdownContent(content.content || '');
+      }
+    }
+  }, [content]);
 
   // Focus content field when shouldFocusContent is true or content changes
   useEffect(() => {
@@ -61,12 +106,15 @@ function ContentContainer({ content, onContentChange }) {
   };
 
   // Event handlers
-  const handleContentChange = (value) => {
-    setMarkdownContent(value);
+  const handleContentChange = (newContent, newExtracts = extracts) => {
+    setMarkdownContent(newContent);
+    
+    // Update the content object with both the new content and extracts
     if (onContentChange) {
       onContentChange({
         ...content,
-        content: value
+        content: newContent,
+        extracts: newExtracts
       });
     }
   };
@@ -99,6 +147,60 @@ function ContentContainer({ content, onContentChange }) {
         timestamp: date ? date.toISOString().split('T')[0] : ''
       });
     }
+  };
+
+  const handleTextSelection = () => {
+    const selection = window.getSelection();
+    if (selection.toString().trim()) {
+      setSelectedText(selection.toString().trim());
+      
+      // Save the range for later use
+      if (selection.rangeCount > 0) {
+        setSelectionRange(selection.getRangeAt(0));
+      }
+    } else {
+      setSelectedText('');
+      setSelectionRange(null);
+    }
+  };
+
+  const handleExtract = () => {
+    if (!selectedText || !content) return;
+    
+    // If we don't have access to onExtract, we can't proceed
+    if (typeof onExtract !== 'function') return;
+    
+    // Record this extract
+    const newExtracts = [...extracts, selectedText];
+    setExtracts(newExtracts);
+    
+    // Create a new child topic with the extracted text as content
+    // Important: Use the plain text without any formatting for the child
+    const extractedNode = {
+      parentNode: content,
+      extractedText: selectedText,
+      type: 'topic',
+      title: `Extract from ${content.title}`,
+      isExtracted: true,
+      content: selectedText, 
+      extracts: []
+    };
+    
+    // Use bold formatting for the extracted text in the PARENT only
+    const updatedContent = markdownContent.replace(
+      selectedText,
+      `**${selectedText}**`
+    );
+    
+    // Update the parent content with both the new text and the extracts record
+    handleContentChange(updatedContent, newExtracts);
+    
+    // Create the new node in the tree with unformatted content
+    onExtract(extractedNode);
+    
+    // Clear the selection
+    setSelectedText('');
+    setSelectionRange(null);
   };
 
   // Determine content type and color scheme
@@ -196,16 +298,31 @@ function ContentContainer({ content, onContentChange }) {
             <div className={`relative ${showToolbar ? 'show-toolbar' : 'hide-toolbar'}`}>
               <MDEditor
                 value={markdownContent}
-                onChange={handleContentChange}
+                onChange={(value) => handleContentChange(value)}
                 height={350}
                 preview="edit"
                 hideToolbar={false}
                 textareaProps={{
                   placeholder: content.type === 'topic' ? "Add content for this topic..." : "",
                   onFocus: () => setIsEditorFocused(true),
-                  onBlur: () => setIsEditorFocused(false)
+                  onBlur: () => setIsEditorFocused(false),
+                  onMouseUp: handleTextSelection,
+                  onKeyUp: handleTextSelection
                 }}
               />
+              {selectedText && (
+                <div className="absolute top-10 right-4 z-10">
+                  <button 
+                    onClick={handleExtract}
+                    className="bg-yellow-400 hover:bg-yellow-500 text-gray-800 px-3 py-1 rounded-md text-sm font-medium shadow-sm flex items-center gap-1"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                    </svg>
+                    Extract
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         )}

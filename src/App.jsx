@@ -27,7 +27,26 @@ function App() {
    * @param {Object} nodeData - The selected node's data
    */
   const handleNodeSelect = (nodeData) => {
+    // Preserve extracts if they exist in the current content
+    if (selectedContent && selectedContent.extracts && !nodeData.extracts) {
+      nodeData.extracts = selectedContent.extracts;
+    }
     setSelectedContent(nodeData);
+  };
+
+  /**
+   * Handler for when text is extracted from content
+   * @param {Object} extractData - Data about the extraction
+   */
+  const handleExtract = (extractData) => {
+    // Create a new node in the tree
+    if (window.contentTreeRef && typeof window.contentTreeRef.handleExtract === 'function') {
+      // Create the new node but don't switch to it
+      window.contentTreeRef.handleExtract(extractData);
+      
+      // We don't set selectedContent here, so we stay on the current content
+      // No need for: setSelectedContent({...})
+    }
   };
 
   return (
@@ -86,7 +105,11 @@ function App() {
             {/* Content Display Area */}
             {selectedContent && (
               <div className="w-full bg-white rounded-lg shadow-sm">
-                <ContentContainer content={selectedContent} />
+                <ContentContainer 
+                  content={selectedContent} 
+                  onContentChange={(updatedContent) => setSelectedContent(updatedContent)}
+                  onExtract={handleExtract}
+                />
               </div>
             )}
           </div>

@@ -47,3 +47,21 @@ body {
   width: 100%;
   min-height: 100vh;
 }
+
+/* Add these styles to your existing CSS */
+.supermemo-node-extracted {
+  background-color: var(--extract-color);
+  border-left: 3px solid var(--extract-border);
+}
+
+.supermemo-node-extracted .supermemo-node-title {
+  font-style: italic;
+}
+
+/* For the highlighted text within the content */
+.markdown-preview .bg-yellow-100,
+.markdown-editor-container .bg-yellow-100 {
+  background-color: var(--extract-color);
+  border-bottom: 2px dashed var(--extract-border);
+  padding: 0 2px;
+}
