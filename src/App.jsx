@@ -4,17 +4,20 @@
  * It coordinates between the content tree, search functionality, and content display.
  */
 
+import "./supermemo-tree.css"; // Import the SuperMemo styling
 import { useState } from "react";
 import ContentContainer from "./content-container";
 import ContentTree from "./content-tree";
 import Search from "./search";
-import "./supermemo-tree.css"; // Import the SuperMemo styling
 import Header from "./header";
 import { initialData } from "./shared";
+import { useLocalStorage } from "@uidotdev/usehooks";
+import { useCallback } from "react";
+import { changeNodeAtPath } from "@nosferatu500/react-sortable-tree";
 
 function App() {
   // Initial tree data structure with sample content
-  const [treeData, setTreeData] = useState(initialData);
+  const [treeData, setTreeData] = useLocalStorage("treeData", initialData);
   // State to track the currently selected content item
   const [selectedContent, setSelectedContent] = useState(null);
 
@@ -22,17 +25,31 @@ function App() {
    * Handler for when a search result is selected
    * @param {Object} result - The selected search result data
    */
-  const handleSearchSelect = (result) => {
+  const handleSearchSelect = useCallback((result) => {
     setSelectedContent(result);
-  };
+  }, []);
 
   /**
    * Handler for when a node in the content tree is selected
    * @param {Object} nodeData - The selected node's data
    */
-  const handleNodeSelect = (nodeData) => {
+  const handleNodeSelect = useCallback((nodeData) => {
     setSelectedContent(nodeData);
-  };
+  }, []);
+
+  const handleContentChange = useCallback(
+    (content) => {
+      setTreeData((treeData) =>
+        changeNodeAtPath({
+          treeData,
+          path: content.path,
+          getNodeKey: ({ treeIndex }) => treeIndex,
+          newNode: { ...content },
+        })
+      );
+    },
+    [setTreeData]
+  );
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -59,7 +76,10 @@ function App() {
             {/* Content Display Area */}
             {selectedContent && (
               <div className="w-full bg-white rounded-lg shadow-sm">
-                <ContentContainer content={selectedContent} />
+                <ContentContainer
+                  initialContent={selectedContent}
+                  onContentChange={handleContentChange}
+                />
               </div>
             )}
           </div>
@@ -67,11 +87,11 @@ function App() {
       </div>
 
       {/* Settings Button - Fixed Position */}
-      <div className="fixed top-4 right-4">
+      {/* <div className="fixed top-4 right-4">
         <button className="p-2 text-gray-600 hover:text-gray-800 transition-colors duration-200">
           <i className="fas fa-cog text-xl"></i>
         </button>
-      </div>
+      </div> */}
     </div>
   );
 }

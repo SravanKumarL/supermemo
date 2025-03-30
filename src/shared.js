@@ -5,6 +5,9 @@ export const initialData = [
     category: "Physics",
     expanded: true,
     content: "",
+    author: "John Doe",
+    timestamp: "2025-03-19",
+    source: "https://example.com/astronomy/order-of-planets-from-sun",
     children: [
       {
         title: "Astronomy",
@@ -12,11 +15,17 @@ export const initialData = [
         content: "",
         category: "Physics",
         expanded: true,
+        author: "John Doe",
+        timestamp: "2025-03-19",
+        source: "https://example.com/astronomy/order-of-planets-from-sun",
         children: [
           {
             title: "Telescopes",
             type: "topic",
             category: "Astronomy",
+            author: "John Doe",
+            timestamp: "2025-03-19",
+            source: "https://example.com/astronomy/order-of-planets-from-sun",
             content:
               "Telescopes are optical instruments that make distant objects appear magnified by using an arrangement of lenses or curved mirrors.",
           },
@@ -24,6 +33,9 @@ export const initialData = [
             title: "Planets",
             type: "topic",
             category: "Astronomy",
+            author: "John Doe",
+            timestamp: "2025-03-19",
+            source: "https://example.com/astronomy/order-of-planets-from-sun",
             content:
               "The order of planets from the sun is: Mercury, Venus, Earth, Mars, Jupiter, Saturn, Uranus, Neptune.",
           },
@@ -31,6 +43,9 @@ export const initialData = [
             title: "Hubble Telescope",
             type: "flashcard",
             category: "Astronomy",
+            author: "John Doe",
+            timestamp: "2025-03-19",
+            source: "https://example.com/astronomy/order-of-planets-from-sun",
             content:
               "The Hubble Space Telescope is a space telescope that was launched into low Earth orbit in 1990 and remains in operation.",
           },
@@ -42,11 +57,17 @@ export const initialData = [
         category: "Physics",
         content: "",
         expanded: true,
+        author: "John Doe",
+        timestamp: "2025-03-19",
+        source: "https://example.com/astronomy/order-of-planets-from-sun",
         children: [
           {
             title: "Newton's Laws",
             type: "topic",
             category: "Mechanics",
+            author: "John Doe",
+            timestamp: "2025-03-19",
+            source: "https://example.com/astronomy/order-of-planets-from-sun",
             content:
               "The three laws of motion describe the relationship between a body and the forces acting upon it.",
           },
@@ -54,6 +75,9 @@ export const initialData = [
             title: "Gravity",
             type: "topic",
             category: "Mechanics",
+            author: "John Doe",
+            timestamp: "2025-03-19",
+            source: "https://example.com/astronomy/order-of-planets-from-sun",
             content:
               "Gravity is a force of attraction that exists between any two masses, any two bodies, any two particles.",
           },
@@ -61,6 +85,9 @@ export const initialData = [
             title: "Newton's First Law",
             type: "flashcard",
             category: "Mechanics",
+            author: "John Doe",
+            timestamp: "2025-03-19",
+            source: "https://example.com/astronomy/order-of-planets-from-sun",
             content:
               "An object at rest stays at rest and an object in motion stays in motion with the same speed and in the same direction unless acted upon by an unbalanced force.",
           },

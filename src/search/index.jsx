@@ -54,7 +54,7 @@ function Search({ onSelect, treeData }) {
         item.type.toLowerCase().includes(query)
       );
     });
-  }, [searchQuery]);
+  }, [allItems, searchQuery]);
 
   // Reset selected index when search results change
   useEffect(() => {

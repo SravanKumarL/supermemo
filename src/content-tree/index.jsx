@@ -22,8 +22,8 @@ function ContentTree({ treeData, onTreeDataChanged, onNodeSelect }) {
   const [matches, setMatches] = useState([]);
 
   // Node selection and editing state
-  const [selectedNode, setSelectedNode] = useState(treeData[0]);
-  const [selectedPath, setSelectedPath] = useState([0]);
+  const [selectedNode, setSelectedNode] = useState(null);
+  const [selectedPath, setSelectedPath] = useState(null);
   const [editingNode, setEditingNode] = useState(null);
   const [lastClickTime, setLastClickTime] = useState(0);
   const DOUBLE_CLICK_THRESHOLD = 200;
@@ -41,29 +41,36 @@ function ContentTree({ treeData, onTreeDataChanged, onNodeSelect }) {
 
   const onNodeSelectionChanged = useCallback(
     (node, path) => {
-      setSelectedNode({ node: node, path: path.join("-") });
-      setSelectedPath(path);
-      onNodeSelect({
-        type: node.type,
-        title: node.title,
-        content: node.content || "",
-        topic: node.title,
-        source: "https://example.com/astronomy/order-of-planets-from-sun",
-        timestamp: "2025-03-19",
-        author: "John Doe",
-        isPreview: false,
-        shouldFocusContent: true,
-      });
+      let changed = false;
+      if (selectedNode?.node !== node && selectedNode?.path !== path) {
+        setSelectedNode({ node: node, path: path.join("-") });
+        changed = true;
+      }
+      if (selectedPath !== path) {
+        setSelectedPath(path);
+        changed = true;
+      }
+      if (changed) {
+        onNodeSelect({
+          ...node,
+          path,
+          content: node.content || "",
+          topic: path.length > 0 ? path[0]?.title || "" : "",
+          isPreview: false,
+          shouldFocusContent: true,
+        });
+      }
     },
-    [onNodeSelect]
+    [onNodeSelect, selectedNode, selectedPath]
   );
 
   // Effect to focus on node when tree selection changes
   useEffect(() => {
     if (!selectedNode && !selectedPath) {
-      onNodeSelectionChanged(selectedNode, selectedPath);
+      return onNodeSelectionChanged(...rootNodeSelectionPayload(treeData));
     }
-  }, [onNodeSelectionChanged, selectedNode, selectedPath]);
+    onNodeSelectionChanged(selectedNode.node, selectedPath);
+  }, [onNodeSelectionChanged, selectedNode, selectedPath, treeData]);
 
   const handleTreeChange = useCallback(
     (treeData) => {
@@ -112,55 +119,40 @@ function ContentTree({ treeData, onTreeDataChanged, onNodeSelect }) {
     return node.title.toLowerCase().indexOf(searchQuery.toLowerCase()) > -1;
   };
 
-  const showPreview = (matchNode) => {
-    if (matchNode && matchNode.node.type) {
-      onNodeSelect({
-        type: matchNode.node.type,
-        title: matchNode.node.title,
-        content: matchNode.node.content,
-        topic: matchNode.path[0]?.title || "",
-        source: "https://example.com/astronomy/order-of-planets-from-sun",
-        timestamp: "2025-03-19",
-        author: "John Doe",
-        isPreview: true,
-      });
-    }
-  };
+  const showPreview = useCallback(
+    (matchNode) => {
+      if (matchNode && matchNode.node.type) {
+        onNodeSelect({
+          type: matchNode.node.type,
+          title: matchNode.node.title,
+          content: matchNode.node.content,
+          topic: matchNode.path[0]?.title || "",
+          source: matchNode.source,
+          timestamp: matchNode.timestamp,
+          author: matchNode.author,
+          isPreview: true,
+        });
+      }
+    },
+    [onNodeSelect]
+  );
 
   useEffect(() => {
     if (matches.length > 0 && searchFocusIndex < matches.length) {
       showPreview(matches[searchFocusIndex]);
     }
-  }, [searchFocusIndex, matches]);
+  }, [searchFocusIndex, matches, showPreview]);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (!searchString) return;
 
       switch (e.key) {
-        case "Enter":
+        case "Enter": {
           e.preventDefault();
           const matchingNodes = matches[searchFocusIndex];
           if (matchingNodes && matchingNodes.node.type) {
-            onNodeSelect({
-              type: matchingNodes.node.type,
-              title: matchingNodes.node.title,
-              content: matchingNodes.node.content,
-              topic: matchingNodes.path[0]?.title || "",
-              source: "https://example.com/astronomy/order-of-planets-from-sun",
-              timestamp: "2025-03-19",
-              author: "John Doe",
-              isPreview: false,
-              shouldFocusContent: true,
-            });
-
-            // Set node as selected
-            setSelectedNode({
-              node: matchingNodes.node,
-              path: matchingNodes.path.join("-"),
-            });
-            setSelectedPath(matchingNodes.path);
-
+            onNodeSelectionChanged(matchingNodes.node, matchingNodes.path);
             // Set animation target
             setAnimatingNode(matchingNodes.node.path);
             setTimeout(() => setAnimatingNode(null), 500);
@@ -169,6 +161,7 @@ function ContentTree({ treeData, onTreeDataChanged, onNodeSelect }) {
             clearSearch();
           }
           break;
+        }
         case "Escape":
           e.preventDefault();
           // Clear search when Escape is pressed
@@ -196,18 +189,28 @@ function ContentTree({ treeData, onTreeDataChanged, onNodeSelect }) {
 
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [searchString, searchFocusIndex, searchFoundCount, matches, onNodeSelect]);
+  }, [
+    searchString,
+    searchFocusIndex,
+    searchFoundCount,
+    matches,
+    onNodeSelect,
+    onNodeSelectionChanged,
+  ]);
 
-  const handleTitleChange = (node, path, newTitle) => {
-    onTreeDataChanged(
-      changeNodeAtPath({
-        treeData,
-        path,
-        getNodeKey: ({ treeIndex }) => treeIndex,
-        newNode: { ...node, title: newTitle },
-      })
-    );
-  };
+  const handleTitleChange = useCallback(
+    (node, path, newTitle) => {
+      onTreeDataChanged(
+        changeNodeAtPath({
+          treeData,
+          path,
+          getNodeKey: ({ treeIndex }) => treeIndex,
+          newNode: { ...node, title: newTitle },
+        })
+      );
+    },
+    [onTreeDataChanged, treeData]
+  );
 
   const generateNodeProps = useCallback(
     ({ node, path }) => {
@@ -242,21 +245,7 @@ function ContentTree({ treeData, onTreeDataChanged, onNodeSelect }) {
                 })
               );
             } else {
-              setSelectedNode({ node, path: nodePath });
-              setSelectedPath(path);
-              onNodeSelect({
-                type: node.type,
-                title: node.title,
-                content: node.content || "",
-                topic: path.length > 0 ? treeData[path[0]]?.title || "" : "",
-                source:
-                  "https://example.com/astronomy/order-of-planets-from-sun",
-                timestamp: "2025-03-19",
-                author: "John Doe",
-                isPreview: false,
-                shouldFocusContent: true,
-              });
-
+              onNodeSelectionChanged(node, path);
               // Clear search when selecting a node directly
               if (searchString) {
                 clearSearch();
@@ -326,13 +315,15 @@ function ContentTree({ treeData, onTreeDataChanged, onNodeSelect }) {
       };
     },
     [
-      searchString,
-      onNodeSelect,
       selectedNode,
-      treeData,
       editingNode,
-      lastClickTime,
       animatingNode,
+      searchString,
+      searchFocusIndex,
+      lastClickTime,
+      onTreeDataChanged,
+      onNodeSelectionChanged,
+      handleTitleChange,
     ]
   );
 
