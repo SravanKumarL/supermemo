@@ -4,7 +4,7 @@ import {
   removeNodeAtPath,
   getNodeAtPath,
 } from "@nosferatu500/react-sortable-tree";
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { rootNodeSelectionPayload } from "../../shared";
 
 const TreeHeader = ({
@@ -15,23 +15,19 @@ const TreeHeader = ({
   treeData,
   onTreeDataChanged,
 }) => {
-  const expandAll = useCallback(() => {
-    onTreeDataChanged(
-      toggleExpandedForAll({
-        treeData,
-        expanded: true,
-      })
-    );
-  }, [onTreeDataChanged, treeData]);
+  // Add state to track if tree is expanded
+  const [isExpanded, setIsExpanded] = useState(false);
 
-  const collapseAll = useCallback(() => {
+  // Combined toggle function
+  const toggleTree = useCallback(() => {
     onTreeDataChanged(
       toggleExpandedForAll({
         treeData,
-        expanded: false,
+        expanded: !isExpanded,
       })
     );
-  }, [onTreeDataChanged, treeData]);
+    setIsExpanded(!isExpanded);
+  }, [onTreeDataChanged, treeData, isExpanded]);
 
   const addNewNode = useCallback(
     (path, type = "topic", asSibling = false) => {
@@ -42,6 +38,7 @@ const TreeHeader = ({
         type: type,
         content: type === "topic" ? "" : "Enter flashcard content here...",
         children: type === "topic" ? [] : undefined,
+        isEditing: type === "flashcard",
       };
 
       const targetPath = selectedNode.path.split("-").map(Number);
@@ -120,11 +117,8 @@ const TreeHeader = ({
       <div className="flex justify-between items-center mb-4">
         <h3 className="supermemo-tree-title">Content Tree</h3>
         <div className="supermemo-tree-buttons">
-          <button className="supermemo-tree-button" onClick={expandAll}>
-            Expand All
-          </button>
-          <button className="supermemo-tree-button" onClick={collapseAll}>
-            Collapse All
+          <button className="supermemo-tree-button" onClick={toggleTree}>
+            Toggle Tree
           </button>
         </div>
       </div>

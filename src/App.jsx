@@ -5,14 +5,13 @@
  */
 
 import "./supermemo-tree.css"; // Import the SuperMemo styling
-import { useState } from "react";
+import { useState, useCallback, useEffect } from "react";
 import ContentContainer from "./content-container";
 import ContentTree from "./content-tree";
 import Search from "./search";
 import Header from "./header";
-import { initialData } from "./shared";
+import { initialData, normalizeTreeData } from "./shared";
 import { useLocalStorage } from "@uidotdev/usehooks";
-import { useCallback } from "react";
 import { changeNodeAtPath } from "@nosferatu500/react-sortable-tree";
 
 function App() {
@@ -51,6 +50,44 @@ function App() {
     [setTreeData]
   );
 
+  /**
+   * Handles the Discover button click to show random content
+   */
+  const handleDiscoverClick = useCallback(() => {
+    // Normalize tree data to get a flat array of all nodes
+    const allItems = normalizeTreeData(treeData);
+    
+    // Filter out only topics and flashcards that have content
+    const contentItems = allItems.filter(
+      item => (item.type === "topic" || item.type === "flashcard") && item.content
+    );
+    
+    if (contentItems.length > 0) {
+      // Select a random item
+      const randomIndex = Math.floor(Math.random() * contentItems.length);
+      const randomItem = contentItems[randomIndex];
+      
+      // Set the selected content
+      setSelectedContent(randomItem);
+    }
+  }, [treeData]);
+
+  // Set up event listener for flashcard navigation after grading
+  useEffect(() => {
+    const handleDiscoverNext = () => {
+      // Call the handleDiscoverClick function to navigate to a random item
+      handleDiscoverClick();
+    };
+
+    // Add event listener for custom 'discovernext' event
+    document.addEventListener('discovernext', handleDiscoverNext);
+    
+    // Clean up the event listener when the component unmounts
+    return () => {
+      document.removeEventListener('discovernext', handleDiscoverNext);
+    };
+  }, [handleDiscoverClick]);
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header Section */}
@@ -80,6 +117,17 @@ function App() {
                   initialContent={selectedContent}
                   onContentChange={handleContentChange}
                 />
+                
+                {/* Discover Button */}
+                <div className="flex justify-center mt-4 pb-4">
+                  <button
+                    onClick={handleDiscoverClick}
+                    className="px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-medium rounded-lg shadow-md hover:shadow-lg transition-all duration-300 flex items-center gap-2"
+                  >
+                    <i className="fas fa-compass"></i>
+                    Discover
+                  </button>
+                </div>
               </div>
             )}
           </div>
