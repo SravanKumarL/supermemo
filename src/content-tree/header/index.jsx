@@ -40,7 +40,8 @@ const TreeHeader = ({
       const newNode = {
         title: type === "topic" ? "New Topic" : "New Flashcard",
         type: type,
-        content: type === "topic" ? "" : "Enter flashcard content here...",
+        category: selectedNode.node?.title || "",
+        content: "",
         children: type === "topic" ? [] : undefined,
       };
 

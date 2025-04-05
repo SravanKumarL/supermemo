@@ -57,7 +57,7 @@ function ContentTree({ treeData, onTreeDataChanged, onNodeSelect }) {
           content: node.content || "",
           topic: path.length > 0 ? path[0]?.title || "" : "",
           isPreview: false,
-          shouldFocusContent: true,
+          // shouldFocusContent: true,
         });
       }
     },
@@ -123,13 +123,7 @@ function ContentTree({ treeData, onTreeDataChanged, onNodeSelect }) {
     (matchNode) => {
       if (matchNode && matchNode.node.type) {
         onNodeSelect({
-          type: matchNode.node.type,
-          title: matchNode.node.title,
-          content: matchNode.node.content,
-          topic: matchNode.path[0]?.title || "",
-          source: matchNode.source,
-          timestamp: matchNode.timestamp,
-          author: matchNode.author,
+          ...matchNode.node,
           isPreview: true,
         });
       }
