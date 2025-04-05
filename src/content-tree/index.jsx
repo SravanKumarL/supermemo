@@ -81,12 +81,17 @@ function ContentTree({ treeData, onTreeDataChanged, onNodeSelect }) {
         }));
       };
 
-      const processedTreeData = treeData.map((node) => ({
-        ...node,
-        children: ensureChildrenArray(node.children || []),
-      }));
+      // Create a fresh copy of the tree data
+      const processedTreeData = JSON.parse(JSON.stringify(
+        treeData.map((node) => ({
+          ...node,
+          children: ensureChildrenArray(node.children || []),
+        }))
+      ));
 
+      // Update tree data with a new reference
       onTreeDataChanged(processedTreeData);
+      
       /* 
         If tree changed due to deletion of the currently selected node,
         we reset the selection to root node
@@ -200,14 +205,13 @@ function ContentTree({ treeData, onTreeDataChanged, onNodeSelect }) {
 
   const handleTitleChange = useCallback(
     (node, path, newTitle) => {
-      onTreeDataChanged(
-        changeNodeAtPath({
-          treeData,
-          path,
-          getNodeKey: ({ treeIndex }) => treeIndex,
-          newNode: { ...node, title: newTitle },
-        })
-      );
+      const updatedTreeData = changeNodeAtPath({
+        treeData,
+        path,
+        getNodeKey: ({ treeIndex }) => treeIndex,
+        newNode: { ...node, title: newTitle },
+      });
+      onTreeDataChanged(updatedTreeData);
     },
     [onTreeDataChanged, treeData]
   );
@@ -236,14 +240,13 @@ function ContentTree({ treeData, onTreeDataChanged, onNodeSelect }) {
             e.stopPropagation();
           } else {
             if (isSelected) {
-              onTreeDataChanged((prevTreeData) =>
-                changeNodeAtPath({
-                  treeData: prevTreeData,
-                  path,
-                  getNodeKey: ({ treeIndex }) => treeIndex,
-                  newNode: { ...node, expanded: !node.expanded },
-                })
-              );
+              const updatedTreeData = changeNodeAtPath({
+                treeData,
+                path,
+                getNodeKey: ({ treeIndex }) => treeIndex,
+                newNode: { ...node, expanded: !node.expanded },
+              });
+              onTreeDataChanged(updatedTreeData);
             } else {
               onNodeSelectionChanged(node, path);
               // Clear search when selecting a node directly

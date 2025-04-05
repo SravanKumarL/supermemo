@@ -20,6 +20,12 @@ function App() {
   // State to track the currently selected content item
   const [selectedContent, setSelectedContent] = useState(null);
 
+  // Handle tree data changes - ensure persistence
+  const handleTreeDataChange = useCallback((newTreeData) => {
+    // Make sure we're saving a new reference to localStorage
+    setTreeData([...newTreeData]);
+  }, [setTreeData]);
+
   /**
    * Handler for when a search result is selected
    * @param {Object} result - The selected search result data
@@ -100,7 +106,7 @@ function App() {
           <div className="w-1/4">
             <ContentTree
               treeData={treeData}
-              onTreeDataChanged={setTreeData}
+              onTreeDataChanged={handleTreeDataChange}
               onNodeSelect={handleNodeSelect}
             />
           </div>

@@ -20,12 +20,11 @@ const TreeHeader = ({
 
   // Combined toggle function
   const toggleTree = useCallback(() => {
-    onTreeDataChanged(
-      toggleExpandedForAll({
-        treeData,
-        expanded: !isExpanded,
-      })
-    );
+    const updatedTreeData = toggleExpandedForAll({
+      treeData,
+      expanded: !isExpanded,
+    });
+    onTreeDataChanged(updatedTreeData);
     setIsExpanded(!isExpanded);
   }, [onTreeDataChanged, treeData, isExpanded]);
 
@@ -47,26 +46,26 @@ const TreeHeader = ({
 
       if (asSibling && targetPath.length > 0) {
         const parentPath = targetPath.slice(0, -1);
-        onTreeDataChanged(
-          addNodeUnderParent({
-            treeData,
-            parentKey: parentPath[parentPath.length - 1],
-            expandParent: true,
-            getNodeKey: ({ treeIndex }) => treeIndex,
-            newNode,
-            addAsFirstChild: false,
-          }).treeData
-        );
+        const updatedTreeData = addNodeUnderParent({
+          treeData,
+          parentKey: parentPath[parentPath.length - 1],
+          expandParent: true,
+          getNodeKey: ({ treeIndex }) => treeIndex,
+          newNode,
+          addAsFirstChild: false,
+        }).treeData;
+        
+        onTreeDataChanged(updatedTreeData);
       } else {
-        onTreeDataChanged(
-          addNodeUnderParent({
-            treeData,
-            parentKey: targetPath[targetPath.length - 1],
-            expandParent: true,
-            getNodeKey: ({ treeIndex }) => treeIndex,
-            newNode,
-          }).treeData
-        );
+        const updatedTreeData = addNodeUnderParent({
+          treeData,
+          parentKey: targetPath[targetPath.length - 1],
+          expandParent: true,
+          getNodeKey: ({ treeIndex }) => treeIndex,
+          newNode,
+        }).treeData;
+        
+        onTreeDataChanged(updatedTreeData);
       }
     },
     [onTreeDataChanged, selectedNode, treeData]
@@ -86,18 +85,21 @@ const TreeHeader = ({
         }
       }
 
-      onTreeDataChanged(
-        removeNodeAtPath({
-          treeData,
-          path,
-          getNodeKey: ({ treeIndex }) => treeIndex,
-        })
-      );
+      // Perform the node removal
+      const updatedTreeData = removeNodeAtPath({
+        treeData,
+        path,
+        getNodeKey: ({ treeIndex }) => treeIndex,
+      });
 
+      // Apply the update using the provided callback
+      onTreeDataChanged(updatedTreeData);
+
+      // Update selection to parent node or first available node
       const parentPath = path.slice(0, -1);
       if (parentPath.length > 0) {
         const parentNode = getNodeAtPath({
-          treeData,
+          treeData: updatedTreeData,
           path: parentPath,
           getNodeKey: ({ treeIndex }) => treeIndex,
         })?.node;
@@ -106,8 +108,8 @@ const TreeHeader = ({
           onNodeSelectionChanged(parentNode, parentPath);
         }
       } else {
-        if (treeData.length > 0) {
-          onNodeSelectionChanged(...rootNodeSelectionPayload(treeData));
+        if (updatedTreeData.length > 0) {
+          onNodeSelectionChanged(...rootNodeSelectionPayload(updatedTreeData));
         }
       }
     },
