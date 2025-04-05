@@ -44,6 +44,9 @@ function ContentContainer({ initialContent, onContentChange }) {
       // Force new flashcards into edit mode
       if (isNewFlashcard) {
         contentData.isEditing = true;
+        contentData.content = '';
+        contentData.question = '';
+        contentData.answer = '';
       }
       
       if (initialContent.type === "flashcard" && typeof initialContent.content === "string" && !initialContent.question) {
@@ -439,7 +442,11 @@ function ContentContainer({ initialContent, onContentChange }) {
               <div className="mb-6">
                 <h3 className="text-lg font-medium text-gray-700 mb-3">Question</h3>
                 <div className="flashcard-study-question">
-                  <MDEditor.Markdown source={content.question || content.content || ""} />
+                  {content.question || content.content ? (
+                    <MDEditor.Markdown source={content.question || content.content} />
+                  ) : (
+                    <div className="text-gray-400 italic">Empty question field</div>
+                  )}
                 </div>
               </div>
               
@@ -448,7 +455,11 @@ function ContentContainer({ initialContent, onContentChange }) {
                   <div className="mb-6">
                     <h3 className="text-lg font-medium text-gray-700 mb-3">Answer</h3>
                     <div className="flashcard-study-answer">
-                      <MDEditor.Markdown source={content.answer || ""} />
+                      {content.answer ? (
+                        <MDEditor.Markdown source={content.answer} />
+                      ) : (
+                        <div className="text-gray-400 italic">Empty answer field</div>
+                      )}
                     </div>
                   </div>
                   

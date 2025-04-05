@@ -36,7 +36,9 @@ const TreeHeader = ({
       const newNode = {
         title: type === "topic" ? "New Topic" : "New Flashcard",
         type: type,
-        content: type === "topic" ? "" : "Enter flashcard content here...",
+        content: "",
+        question: type === "flashcard" ? "" : undefined,
+        answer: type === "flashcard" ? "" : undefined,
         children: type === "topic" ? [] : undefined,
         isEditing: type === "flashcard",
       };
