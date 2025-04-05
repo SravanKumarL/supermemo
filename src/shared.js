@@ -102,16 +102,29 @@ export const initialData = [
 ];
 
 const _normalizeTreeData = (treeData, normalizedTreeData = []) => {
-  (treeData || []).forEach((item) => {
-    normalizedTreeData.push(item);
-    if (item.children?.length > 0) {
-      _normalizeTreeData(item.children, normalizedTreeData);
+  if (!treeData || !Array.isArray(treeData) || treeData.length === 0) {
+    return normalizedTreeData;
+  }
+  
+  treeData.forEach((item) => {
+    if (item) {
+      normalizedTreeData.push(item);
+      if (item.children && Array.isArray(item.children) && item.children.length > 0) {
+        _normalizeTreeData(item.children, normalizedTreeData);
+      }
     }
   });
   return normalizedTreeData;
 };
 
-export const normalizeTreeData = _normalizeTreeData;
+export const normalizeTreeData = (treeData) => {
+  try {
+    return _normalizeTreeData(treeData) || [];
+  } catch (error) {
+    console.error("Error in normalizeTreeData:", error);
+    return [];
+  }
+};
 
 export const rootNodeSelectionPayload = (treeData) => [treeData[0], [0]];
 

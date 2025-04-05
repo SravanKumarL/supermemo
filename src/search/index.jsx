@@ -37,7 +37,14 @@ function Search({ onSelect, treeData }) {
    * - content: Preview text
    */
 
-  const allItems = useMemo(() => normalizeTreeData(treeData), [treeData]);
+  const allItems = useMemo(() => {
+    try {
+      return normalizeTreeData(treeData) || [];
+    } catch (error) {
+      console.error("Error normalizing tree data:", error);
+      return [];
+    }
+  }, [treeData]);
 
   /**
    * Filter and search logic using memoization for performance
@@ -49,9 +56,9 @@ function Search({ onSelect, treeData }) {
     const query = searchQuery.toLowerCase();
     return allItems.filter((item) => {
       return (
-        item.title.toLowerCase().includes(query) ||
-        item.category.toLowerCase().includes(query) ||
-        item.type.toLowerCase().includes(query)
+        (item.title && item.title.toLowerCase().includes(query)) ||
+        (item.category && item.category.toLowerCase().includes(query)) ||
+        (item.type && item.type.toLowerCase().includes(query))
       );
     });
   }, [allItems, searchQuery]);
@@ -97,18 +104,23 @@ function Search({ onSelect, treeData }) {
    * @returns {JSX.Element} - Text with highlighted matches
    */
   const highlightMatch = (text, query) => {
-    if (!query) return text;
+    if (!text || !query) return text || "";
 
-    const parts = text.split(new RegExp(`(${query})`, "gi"));
-    return parts.map((part, index) =>
-      part.toLowerCase() === query.toLowerCase() ? (
-        <span key={index} className="bg-yellow-100 text-yellow-900 font-medium">
-          {part}
-        </span>
-      ) : (
-        part
-      )
-    );
+    try {
+      const parts = text.split(new RegExp(`(${query})`, "gi"));
+      return parts.map((part, index) =>
+        part.toLowerCase() === query.toLowerCase() ? (
+          <span key={index} className="bg-yellow-100 text-yellow-900 font-medium">
+            {part}
+          </span>
+        ) : (
+          part
+        )
+      );
+    } catch (error) {
+      console.error("Error highlighting match:", error);
+      return text;
+    }
   };
 
   /**
@@ -116,6 +128,8 @@ function Search({ onSelect, treeData }) {
    * @param {Object} result - The selected search result
    */
   const handleResultClick = (result) => {
+    if (!result) return;
+    
     onSelect(result);
     setIsOpen(false);
     setSelectedIndex(-1);
@@ -223,27 +237,27 @@ function Search({ onSelect, treeData }) {
                   {/* Type Tag - Positioned Absolutely */}
                   <span
                     className={`absolute top-3 right-3 px-2 py-1 text-xs rounded-full font-medium ${
-                      result.type === "Topic"
+                      result.type === "topic"
                         ? "bg-violet-100 text-violet-800"
                         : "bg-emerald-100 text-emerald-800"
                     } transition-colors duration-200`}
                   >
-                    {result.type}
+                    {result.type || "Unknown"}
                   </span>
 
                   {/* Category Tag */}
                   <span className="inline-block px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-800 font-medium mb-2">
-                    {result.category}
+                    {result.category || "Uncategorized"}
                   </span>
 
                   {/* Title with Highlighted Matches */}
                   <span className="block text-gray-900 font-medium pr-20">
-                    {highlightMatch(result.title, searchQuery)}
+                    {highlightMatch(result.title || "Untitled", searchQuery)}
                   </span>
 
                   {/* Content Preview */}
                   <p className="mt-1 text-sm text-gray-500 line-clamp-1">
-                    {result.content}
+                    {result.content || "No content available"}
                   </p>
                 </div>
               ))
