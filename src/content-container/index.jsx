@@ -305,6 +305,37 @@ function ToggleMarkDownBtn({ isPreview, onPreviewUpdated }) {
   );
 }
 
+function ExtractButton({ onExtract, isDisabled }) {
+  return (
+    <button
+      type="button"
+      onClick={onExtract}
+      disabled={isDisabled}
+      className={`px-2 py-1 rounded text-xs font-medium transition-colors duration-200 flex items-center gap-1 ${
+        isDisabled
+          ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+          : "bg-emerald-100 text-emerald-700 hover:bg-emerald-200"
+      }`}
+      title="Extract selection as new topic"
+    >
+      <svg
+        className="w-3.5 h-3.5"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="2"
+          d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"
+        />
+      </svg>
+      Extract
+    </button>
+  );
+}
+
 function ContentArea({ isPreview, content, onContentUpdated }) {
   // const editorRef = useRef(null);
   // const [isEditorFocused, setIsEditorFocused] = useState(false);
@@ -347,7 +378,7 @@ function ContentArea({ isPreview, content, onContentUpdated }) {
           <MDEditor.Markdown source={content.content || ""} />
         </div>
       ) : (
-        <div className="markdown-editor-container p-2" /* ref={editorRef} */>
+        <div className="markdown-editor-container p-2" id="markdown-editor-container">
           <div
             className={`relative ${
               isPreview ? "hide-toolbar" : "show-toolbar"
@@ -366,6 +397,7 @@ function ContentArea({ isPreview, content, onContentUpdated }) {
                     : "Enter flashcard content here...",
                 // onFocus: () => setIsEditorFocused(true),
                 // onBlur: () => setIsEditorFocused(false),
+                id: "markdown-editor-textarea"
               }}
             />
           </div>
@@ -381,6 +413,7 @@ function Header({
   onPreviewUpdated,
   content,
   onContentUpdated,
+  onExtractSelection,
 }) {
   const handleInputChange = useCallback(
     (e) => {
@@ -414,6 +447,10 @@ function Header({
           >
             {content.type}
           </span>
+          <ExtractButton 
+            onExtract={onExtractSelection}
+            isDisabled={isPreview}
+          />
           <ToggleMarkDownBtn
             isPreview={isPreview}
             onPreviewUpdated={onPreviewUpdated}
@@ -434,7 +471,7 @@ const defaultContent = {
   source: "",
 };
 
-function ContentContainer({ initialContent, onContentChange }) {
+function ContentContainer({ initialContent, onContentChange, onExtractSelection }) {
   const [content, setContent] = useState(initialContent || defaultContent);
   const [isPreview, setIsPreview] = useState(false);
 
@@ -482,6 +519,60 @@ function ContentContainer({ initialContent, onContentChange }) {
         border: "border-violet-200",
         footer: "bg-violet-100",
       };
+  
+  const getSelectedText = useCallback(() => {
+    // First try to get any selection from the window
+    if (window.getSelection) {
+      const selection = window.getSelection().toString();
+      if (selection && selection.trim() !== '') {
+        console.log("Found window selection:", selection.length, "characters");
+        return selection;
+      }
+    }
+    
+    // Try different selectors to find the textarea in MDEditor
+    const textareaSelectors = [
+      '#markdown-editor-textarea',
+      '.w-md-editor-text-input textarea',
+      '.w-md-editor textarea',
+      '.markdown-editor-container textarea'
+    ];
+    
+    for (const selector of textareaSelectors) {
+      const editorTextarea = document.querySelector(selector);
+      if (editorTextarea) {
+        const start = editorTextarea.selectionStart;
+        const end = editorTextarea.selectionEnd;
+        
+        console.log(`Found textarea with selector ${selector}, selection range:`, start, end);
+        
+        if (start !== undefined && end !== undefined && start !== end) {
+          const selectedText = editorTextarea.value.substring(start, end);
+          console.log("Found textarea selection:", selectedText.length, "characters");
+          return selectedText;
+        }
+      }
+    }
+    
+    return '';
+  }, []);
+  
+  const handleExtractSelection = useCallback(() => {
+    if (isPreview) return;
+    
+    const selectedText = getSelectedText();
+    console.log("Selection detected:", selectedText ? selectedText.length : 0, "characters");
+    
+    if (selectedText && selectedText.trim() !== '') {
+      console.log("Extracting selection:", selectedText.substring(0, 50) + "...");
+      if (onExtractSelection) {
+        onExtractSelection(selectedText, initialContent);
+      }
+    } else {
+      console.log("No valid selection found to extract");
+      alert("Please select some text to extract first");
+    }
+  }, [getSelectedText, isPreview, onExtractSelection, initialContent]);
 
   return (
     <div
@@ -497,6 +588,7 @@ function ContentContainer({ initialContent, onContentChange }) {
         isPreview={isPreview}
         onContentUpdated={updateContent}
         onPreviewUpdated={setIsPreview}
+        onExtractSelection={handleExtractSelection}
       />
 
       <ContentArea

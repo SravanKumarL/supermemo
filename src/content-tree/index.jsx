@@ -69,7 +69,25 @@ function ContentTree({ treeData, onTreeDataChanged, onNodeSelect }) {
     if (!selectedNode && !selectedPath) {
       return onNodeSelectionChanged(...rootNodeSelectionPayload(treeData));
     }
-    onNodeSelectionChanged(selectedNode.node, selectedPath);
+    
+    // When treeData changes, ensure the selected node is still valid
+    // by getting the node at current path from updated tree
+    if (selectedPath) {
+      const pathArray = Array.isArray(selectedPath) 
+        ? selectedPath 
+        : selectedPath.map ? selectedPath : [];
+        
+      const node = getNodeAtPath({
+        treeData,
+        path: pathArray,
+        getNodeKey: ({ treeIndex }) => treeIndex,
+      })?.node;
+      
+      if (node) {
+        // Ensure we have the latest reference to the node
+        onNodeSelectionChanged(node, pathArray);
+      }
+    }
   }, [onNodeSelectionChanged, selectedNode, selectedPath, treeData]);
 
   const handleTreeChange = useCallback(
@@ -370,6 +388,16 @@ function ContentTree({ treeData, onTreeDataChanged, onNodeSelect }) {
           rowHeight={26} // Lower height for SuperMemo-like density
           scaffoldBlockPxWidth={24} // Narrower scaffold for SuperMemo style
           slideRegionSize={100}
+          reactVirtualizedListProps={{
+            // Adding key to force re-render when treeData changes
+            key: JSON.stringify(treeData).length,
+            // Improved list updating options
+            overscanRowCount: 10,
+            // Ensure the tree refreshes properly
+            onScroll: () => {}, // No-op to ensure proper re-renders
+          }}
+          shouldCopyOnOutsideDrop={false}
+          isVirtualized={true}
         />
       </div>
     </div>
