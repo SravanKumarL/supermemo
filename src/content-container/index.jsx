@@ -2,11 +2,39 @@
  * ContentContainer Component with Markdown Editor
  */
 
-import React, { useState, useEffect, /*  useRef, */ useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import "./index.css";
 import MDEditor from "@uiw/react-md-editor";
+
+function useFocusEditor(content) {
+  const editorRef = useRef(null);
+  // Focus content field when shouldFocusContent is true or content changes
+  useEffect(() => {
+    if (content.shouldFocusContent && editorRef.current) {
+      // Try to find the textarea in the wmde-markdown-var container
+      const textarea = editorRef.current.querySelector(
+        ".w-md-editor-text-input textarea"
+      );
+      if (textarea) {
+        // Use setTimeout to ensure the editor is fully rendered
+        setTimeout(() => {
+          textarea.focus();
+        }, 0);
+      } else {
+        // Fallback: try to find any textarea in the editor
+        const fallbackTextarea = editorRef.current.querySelector("textarea");
+        if (fallbackTextarea) {
+          setTimeout(() => {
+            fallbackTextarea.focus();
+          }, 0);
+        }
+      }
+    }
+  }, [content]);
+  return editorRef;
+}
 
 function Footer({
   isFlashcard,
@@ -306,39 +334,13 @@ function ToggleMarkDownBtn({ isPreview, onPreviewUpdated }) {
 }
 
 function ContentArea({ isPreview, content, onContentUpdated }) {
-  // const editorRef = useRef(null);
-  // const [isEditorFocused, setIsEditorFocused] = useState(false);
-
+  const editorRef = useFocusEditor(content);
   const handleContentChange = useCallback(
     (value) => {
       onContentUpdated("content", value);
     },
     [onContentUpdated]
   );
-
-  // Focus content field when shouldFocusContent is true or content changes
-  // useEffect(() => {
-  //   if (content.shouldFocusContent && editorRef.current) {
-  //     // Try to find the textarea in the wmde-markdown-var container
-  //     const textarea = editorRef.current.querySelector(
-  //       ".w-md-editor-text-input textarea"
-  //     );
-  //     if (textarea) {
-  //       // Use setTimeout to ensure the editor is fully rendered
-  //       setTimeout(() => {
-  //         textarea.focus();
-  //       }, 0);
-  //     } else {
-  //       // Fallback: try to find any textarea in the editor
-  //       const fallbackTextarea = editorRef.current.querySelector("textarea");
-  //       if (fallbackTextarea) {
-  //         setTimeout(() => {
-  //           fallbackTextarea.focus();
-  //         }, 0);
-  //       }
-  //     }
-  //   }
-  // }, [content.shouldFocusContent, content.title, content.type]);
 
   return (
     <div className="bg-white border-y border-gray-200">
@@ -347,7 +349,7 @@ function ContentArea({ isPreview, content, onContentUpdated }) {
           <MDEditor.Markdown source={content.content || ""} />
         </div>
       ) : (
-        <div className="markdown-editor-container p-2" /* ref={editorRef} */>
+        <div className="markdown-editor-container p-2" ref={editorRef}>
           <div
             className={`relative ${
               isPreview ? "hide-toolbar" : "show-toolbar"
@@ -457,7 +459,10 @@ function ContentContainer({ initialContent, onContentChange }) {
     (e) => {
       e.stopPropagation();
       if (onContentChange) {
-        onContentChange(content);
+        onContentChange({
+          ...content,
+          timestamp: content.timestamp.toISOString().substring(0, 10),
+        });
       }
     },
     [content, onContentChange]

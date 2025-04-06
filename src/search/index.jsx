@@ -16,9 +16,8 @@
 
 import { useState, useMemo, useRef, useEffect } from "react";
 import "./index.css";
-import { normalizeTreeData } from "../shared";
 
-function Search({ onSelect, treeData }) {
+function Search({ onSelect, allItems }) {
   // State management for search functionality
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -26,18 +25,6 @@ function Search({ onSelect, treeData }) {
   const searchRef = useRef(null);
   const resultsRef = useRef(null);
   const inputRef = useRef(null);
-
-  /**
-   * Simulated database of searchable items
-   * TODO: Replace with actual data source
-   * Each item has:
-   * - type: "Topic" or "Flashcard"
-   * - category: Subject area
-   * - title: Searchable title
-   * - content: Preview text
-   */
-
-  const allItems = useMemo(() => normalizeTreeData(treeData), [treeData]);
 
   /**
    * Filter and search logic using memoization for performance

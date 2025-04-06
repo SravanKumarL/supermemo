@@ -111,47 +111,14 @@ export const normalizeTreeData = _normalizeTreeData;
 
 export const rootNodeSelectionPayload = (treeData) => [treeData[0], [0]];
 
-// const allItems = [
-//   {
-//     type: "Topic",
-//     category: "Physics",
-//     title: "What is hubble telescope",
-//     content:
-//       "The Hubble Space Telescope is a space telescope that was launched into low Earth orbit in 1990 and remains in operation.",
-//   },
-//   {
-//     type: "Flashcard",
-//     category: "Telescope",
-//     title: "Who invented Hubble Telescope",
-//     content:
-//       "The Hubble Space Telescope is named after astronomer Edwin Hubble and was built by NASA with contributions from the European Space Agency.",
-//   },
-//   {
-//     type: "Topic",
-//     category: "Physics",
-//     title: "Understanding gravity",
-//     content:
-//       "Gravity is one of the fundamental forces of nature, described by Newton's law of universal gravitation and Einstein's theory of general relativity.",
-//   },
-//   {
-//     type: "Flashcard",
-//     category: "Physics",
-//     title: "Newton's laws of motion",
-//     content:
-//       "Newton's three laws of motion describe the relationship between a body and the forces acting upon it.",
-//   },
-//   {
-//     type: "Topic",
-//     category: "Astronomy",
-//     title: "Solar system planets",
-//     content:
-//       "The solar system consists of eight planets: Mercury, Venus, Earth, Mars, Jupiter, Saturn, Uranus, and Neptune.",
-//   },
-//   {
-//     type: "Flashcard",
-//     category: "Astronomy",
-//     title: "Order of planets from sun",
-//     content:
-//       "The order of planets from the sun is: Mercury, Venus, Earth, Mars, Jupiter, Saturn, Uranus, Neptune.",
-//   },
-// ];
+export function getRandomIntExcept(min, max, current) {
+  min = Math.ceil(min);
+  max = Math.floor(max);
+  const random = Math.floor(Math.random() * (max - min + 1)) + min;
+  if (random !== current) {
+    return random;
+  }
+  return Math.random() < 0.5
+    ? Math.max(0, random - 1)
+    : Math.min(random + 1, max - 1);
+}

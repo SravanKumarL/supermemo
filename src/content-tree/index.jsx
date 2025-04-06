@@ -57,7 +57,7 @@ function ContentTree({ treeData, onTreeDataChanged, onNodeSelect }) {
           content: node.content || "",
           topic: path.length > 0 ? path[0]?.title || "" : "",
           isPreview: false,
-          // shouldFocusContent: true,
+          shouldFocusContent: true,
         });
       }
     },

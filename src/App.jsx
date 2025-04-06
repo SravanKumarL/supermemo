@@ -5,51 +5,68 @@
  */
 
 import "./supermemo-tree.css"; // Import the SuperMemo styling
-import { useState } from "react";
+import { useState, useMemo, useCallback } from "react";
 import ContentContainer from "./content-container";
 import ContentTree from "./content-tree";
 import Search from "./search";
 import Header from "./header";
-import { initialData } from "./shared";
+import { getRandomIntExcept, initialData, normalizeTreeData } from "./shared";
 import { useLocalStorage } from "@uidotdev/usehooks";
-import { useCallback } from "react";
 import { changeNodeAtPath } from "@nosferatu500/react-sortable-tree";
+import deepEquals from "fast-deep-equal";
 
 function App() {
   // Initial tree data structure with sample content
   const [treeData, setTreeData] = useLocalStorage("treeData", initialData);
   // State to track the currently selected content item
   const [selectedContent, setSelectedContent] = useState(null);
-
+  // By default, the root node is selected
+  const [selectedNodeIndex, setSelectedNodeIndex] = useState(0);
   /**
-   * Handler for when a search result is selected
-   * @param {Object} result - The selected search result data
+   * Simulated database of searchable items
+   * TODO: Replace with actual data source
+   * Each item has:
+   * - type: "Topic" or "Flashcard"
+   * - category: Subject area
+   * - title: Searchable title
+   * - content: Preview text
    */
-  const handleSearchSelect = useCallback((result) => {
-    setSelectedContent(result);
-  }, []);
+
+  const allItems = useMemo(() => normalizeTreeData(treeData), [treeData]);
 
   /**
-   * Handler for when a node in the content tree is selected
+   * Handler for when a node in the content tree or search result is selected
    * @param {Object} nodeData - The selected node's data
    */
   const handleNodeSelect = useCallback((nodeData) => {
-    setSelectedContent(nodeData);
+    setSelectedContent({ ...nodeData, shouldFocusContent: true });
   }, []);
 
   const handleContentChange = useCallback(
     (content) => {
-      setTreeData((treeData) =>
-        changeNodeAtPath({
-          treeData,
-          path: content.path,
-          getNodeKey: ({ treeIndex }) => treeIndex,
-          newNode: { ...content },
-        })
-      );
+      if (!deepEquals(selectedContent, content)) {
+        setTreeData((treeData) =>
+          changeNodeAtPath({
+            treeData,
+            path: content.path,
+            getNodeKey: ({ treeIndex }) => treeIndex,
+            newNode: { ...content },
+          })
+        );
+      }
     },
-    [setTreeData]
+    [selectedContent, setTreeData]
   );
+
+  const handleDiscoverClick = useCallback(() => {
+    const newSelectedNodeIdx = getRandomIntExcept(
+      0,
+      allItems.length - 1,
+      selectedNodeIndex
+    );
+    handleNodeSelect(allItems[newSelectedNodeIdx]);
+    setSelectedNodeIndex(newSelectedNodeIdx);
+  }, [allItems, handleNodeSelect, selectedNodeIndex]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -64,6 +81,7 @@ function App() {
             <ContentTree
               treeData={treeData}
               onTreeDataChanged={setTreeData}
+              selectedContent={selectedContent}
               onNodeSelect={handleNodeSelect}
             />
           </div>
@@ -71,7 +89,7 @@ function App() {
           {/* Main Content Area */}
           <div className="w-3/4 space-y-4">
             {/* Search Bar */}
-            <Search treeData={treeData} onSelect={handleSearchSelect} />
+            <Search allItems={allItems} onSelect={handleNodeSelect} />
 
             {/* Content Display Area */}
             {selectedContent && (
@@ -80,6 +98,16 @@ function App() {
                   initialContent={selectedContent}
                   onContentChange={handleContentChange}
                 />
+                {/* Discover Button */}
+                <div className="flex justify-center mt-4 pb-4">
+                  <button
+                    onClick={handleDiscoverClick}
+                    className="px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-medium rounded-lg shadow-md hover:shadow-lg transition-all duration-300 flex items-center gap-2"
+                  >
+                    <i className="fas fa-compass"></i>
+                    Discover
+                  </button>
+                </div>
               </div>
             )}
           </div>
