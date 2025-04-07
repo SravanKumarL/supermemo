@@ -7,6 +7,7 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import "./index.css";
 import MDEditor from "@uiw/react-md-editor";
+import Flashcard from "../components/Flashcard";
 
 function useFocusEditor(content) {
   const editorRef = useRef(null);
@@ -342,11 +343,83 @@ function ContentArea({ isPreview, content, onContentUpdated }) {
     [onContentUpdated]
   );
 
+  // Parse question and answer from content for flashcards
+  const getQuestionAnswer = useCallback(() => {
+    if (!content.content) return { question: "", answer: "" };
+    
+    const parts = content.content.split('---');
+    return {
+      question: parts[0]?.trim() || "",
+      answer: parts[1]?.trim() || ""
+    };
+  }, [content.content]);
+
+  const isFlashcardPreview = isPreview && content.type === "flashcard";
+  const { question, answer } = getQuestionAnswer();
+
+  // Handle separate question and answer updates for flashcards
+  const handleQuestionChange = useCallback(
+    (value) => {
+      // Get the current answer directly from content instead of from getQuestionAnswer
+      const parts = content.content ? content.content.split('---') : ["", ""];
+      const currentAnswer = parts[1]?.trim() || "";
+      const newContent = `${value}\n---\n${currentAnswer}`;
+      onContentUpdated("content", newContent);
+    },
+    [onContentUpdated, content.content]
+  );
+
+  const handleAnswerChange = useCallback(
+    (value) => {
+      // Get the current question directly from content instead of from getQuestionAnswer
+      const parts = content.content ? content.content.split('---') : ["", ""];
+      const currentQuestion = parts[0]?.trim() || "";
+      const newContent = `${currentQuestion}\n---\n${value}`;
+      onContentUpdated("content", newContent);
+    },
+    [onContentUpdated, content.content]
+  );
+
   return (
     <div className="bg-white border-y border-gray-200">
-      {isPreview ? (
+      {isFlashcardPreview ? (
+        <Flashcard question={question} answer={answer} />
+      ) : isPreview ? (
         <div className="markdown-preview pt-4 px-6 pb-6 min-h-[300px]">
           <MDEditor.Markdown source={content.content || ""} />
+        </div>
+      ) : content.type === "flashcard" ? (
+        <div className="p-2 space-y-3" data-color-mode="light">
+          <div className="flashcard-question border-l-2 border-blue-500 pl-2">
+            <div className="show-toolbar" ref={editorRef}>
+              <MDEditor
+                value={question}
+                onChange={handleQuestionChange}
+                height={150}
+                preview="edit"
+                hideToolbar={false}
+                visibleDragbar={false}
+                textareaProps={{
+                  placeholder: "Enter your question here...",
+                }}
+              />
+            </div>
+          </div>
+          <div className="flashcard-answer border-l-2 border-green-500 pl-2">
+            <div className="show-toolbar">
+              <MDEditor
+                value={answer}
+                onChange={handleAnswerChange}
+                height={150}
+                preview="edit"
+                hideToolbar={false}
+                visibleDragbar={false}
+                textareaProps={{
+                  placeholder: "Enter your answer here...",
+                }}
+              />
+            </div>
+          </div>
         </div>
       ) : (
         <div className="markdown-editor-container p-2" ref={editorRef}>
@@ -362,12 +435,7 @@ function ContentArea({ isPreview, content, onContentUpdated }) {
               preview="edit"
               hideToolbar={false}
               textareaProps={{
-                placeholder:
-                  content.type === "topic"
-                    ? "Add content for this topic..."
-                    : "Enter flashcard content here...",
-                // onFocus: () => setIsEditorFocused(true),
-                // onBlur: () => setIsEditorFocused(false),
+                placeholder: "Add content for this topic...",
               }}
             />
           </div>
@@ -469,7 +537,7 @@ function ContentContainer({ initialContent, onContentChange }) {
   );
 
   // Determine content type and color scheme
-  const isFlashcard = content.type !== "topic";
+  const isFlashcard = content.type === "flashcard";
   const colorScheme = isFlashcard
     ? {
         header: "bg-blue-100",

@@ -47,7 +47,7 @@ export const initialData = [
             timestamp: "2025-03-19",
             source: "https://example.com/astronomy/order-of-planets-from-sun",
             content:
-              "The Hubble Space Telescope is a space telescope that was launched into low Earth orbit in 1990 and remains in operation.",
+              "What is the Hubble Space Telescope?\n---\nThe Hubble Space Telescope is a space telescope that was launched into low Earth orbit in 1990 and remains in operation.",
           },
         ],
       },
@@ -89,12 +89,168 @@ export const initialData = [
             timestamp: "2025-03-19",
             source: "https://example.com/astronomy/order-of-planets-from-sun",
             content:
-              "An object at rest stays at rest and an object in motion stays in motion with the same speed and in the same direction unless acted upon by an unbalanced force.",
+              "What is Newton's First Law?\n---\nAn object at rest stays at rest and an object in motion stays in motion with the same speed and in the same direction unless acted upon by an unbalanced force.",
           },
         ],
       },
     ],
   },
+  {
+    title: "Biology",
+    type: "topic",
+    category: "Biology",
+    expanded: true,
+    content: "",
+    author: "Jane Smith",
+    timestamp: "2025-03-21",
+    source: "https://example.com/biology/introduction",
+    children: [
+      {
+        title: "Cell Biology",
+        type: "topic",
+        content: "The study of cells, the fundamental units of life.",
+        category: "Biology",
+        expanded: true,
+        author: "Jane Smith",
+        timestamp: "2025-03-21",
+        source: "https://example.com/biology/cell-biology",
+        children: [
+          {
+            title: "Cell Structure",
+            type: "topic",
+            category: "Cell Biology",
+            author: "Jane Smith",
+            timestamp: "2025-03-21",
+            source: "https://example.com/biology/cell-structure",
+            content: "Eukaryotic cells contain membrane-bound organelles including a nucleus, while prokaryotic cells do not."
+          },
+          {
+            title: "Cell Division",
+            type: "topic",
+            category: "Cell Biology",
+            author: "Jane Smith",
+            timestamp: "2025-03-21",
+            source: "https://example.com/biology/cell-division",
+            content: "Cell division includes mitosis (division of the nucleus) and cytokinesis (division of the cytoplasm)."
+          },
+          {
+            title: "Mitochondria Function",
+            type: "flashcard",
+            category: "Cell Biology",
+            author: "Jane Smith",
+            timestamp: "2025-03-21",
+            source: "https://example.com/biology/mitochondria",
+            content: "What is the primary function of mitochondria in cells?\n---\nMitochondria are the powerhouse of the cell, responsible for producing ATP through cellular respiration."
+          },
+          {
+            title: "Cell Types",
+            type: "flashcard",
+            category: "Cell Biology",
+            author: "Jane Smith",
+            timestamp: "2025-03-21",
+            source: "https://example.com/biology/cell-types",
+            content: "What are the two main types of cells?\n---\nProkaryotic cells (bacteria and archaea) and eukaryotic cells (plants, animals, fungi, and protists)."
+          }
+        ]
+      },
+      {
+        title: "Genetics",
+        type: "topic",
+        category: "Biology",
+        content: "The study of genes, heredity, and genetic variation in living organisms.",
+        expanded: true,
+        author: "Jane Smith",
+        timestamp: "2025-03-22",
+        source: "https://example.com/biology/genetics",
+        children: [
+          {
+            title: "DNA Structure",
+            type: "topic",
+            category: "Genetics",
+            author: "Jane Smith",
+            timestamp: "2025-03-22",
+            source: "https://example.com/biology/dna-structure",
+            content: "DNA is a double helix consisting of two strands of nucleotides with complementary base pairs."
+          },
+          {
+            title: "Genetic Inheritance",
+            type: "topic",
+            category: "Genetics",
+            author: "Jane Smith",
+            timestamp: "2025-03-22",
+            source: "https://example.com/biology/genetic-inheritance",
+            content: "Mendel's laws describe how traits are passed from parents to offspring through genes."
+          },
+          {
+            title: "DNA Replication",
+            type: "flashcard",
+            category: "Genetics",
+            author: "Jane Smith",
+            timestamp: "2025-03-22",
+            source: "https://example.com/biology/dna-replication",
+            content: "What is the process of DNA replication?\n---\nDNA replication is a semiconservative process where each strand of the original DNA molecule serves as a template for the production of a new complementary strand."
+          },
+          {
+            title: "Mendel's First Law",
+            type: "flashcard",
+            category: "Genetics",
+            author: "Jane Smith",
+            timestamp: "2025-03-22",
+            source: "https://example.com/biology/mendel-laws",
+            content: "What is Mendel's First Law (Law of Segregation)?\n---\nAllele pairs separate during gamete formation, and then randomly unite during fertilization."
+          }
+        ]
+      },
+      {
+        title: "Ecology",
+        type: "topic",
+        category: "Biology",
+        content: "The study of how organisms interact with their environment and each other.",
+        expanded: true,
+        author: "Jane Smith",
+        timestamp: "2025-03-23",
+        source: "https://example.com/biology/ecology",
+        children: [
+          {
+            title: "Ecosystems",
+            type: "topic",
+            category: "Ecology",
+            author: "Jane Smith",
+            timestamp: "2025-03-23",
+            source: "https://example.com/biology/ecosystems",
+            content: "An ecosystem includes all living organisms and the physical environment with which they interact."
+          },
+          {
+            title: "Food Chains",
+            type: "topic",
+            category: "Ecology",
+            author: "Jane Smith",
+            timestamp: "2025-03-23",
+            source: "https://example.com/biology/food-chains",
+            content: "A food chain is a linear sequence of organisms through which energy and nutrients pass as one organism eats another."
+          },
+          {
+            title: "Trophic Levels",
+            type: "flashcard",
+            category: "Ecology",
+            author: "Jane Smith",
+            timestamp: "2025-03-23",
+            source: "https://example.com/biology/trophic-levels",
+            content: "What is the 10% rule in energy transfer between trophic levels?\n---\nOnly about 10% of the energy at one trophic level is transferred to the next level. The rest is lost as heat through metabolic processes."
+          },
+          {
+            title: "Biomes",
+            type: "flashcard",
+            category: "Ecology",
+            author: "Jane Smith",
+            timestamp: "2025-03-23",
+            source: "https://example.com/biology/biomes",
+            content: "What defines a biome?\n---\nA biome is a large naturally occurring community of flora and fauna occupying a major habitat, defined by its dominant vegetation and climate conditions."
+          }
+        ]
+      }
+    ]
+  }
 ];
 
 const _normalizeTreeData = (treeData, normalizedTreeData = []) => {

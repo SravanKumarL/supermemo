@@ -263,15 +263,13 @@
 /* Flashcard styling */
 .flashcard-question,
 .flashcard-answer {
-  border: 1px solid #e5e7eb;
-  border-radius: 0.5rem;
+  background-color: white;
   transition: all 0.2s ease;
 }
 
 .flashcard-question:focus-within,
 .flashcard-answer:focus-within {
-  border-color: #93c5fd;
-  box-shadow: 0 0 0 3px rgba(147, 197, 253, 0.2);
+  background-color: #f9fafb;
 }
 
 /* Flashcard study mode */
@@ -391,4 +389,55 @@
 .flashcard-grade-button:disabled {
   cursor: not-allowed;
   opacity: 0.7;
+}
+
+/* Ensure toolbars are visible for flashcard editors */
+.show-toolbar .w-md-editor-toolbar {
+  display: flex !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  height: auto !important;
+  padding: 8px !important;
+  overflow: visible !important;
+  transform: none !important;
+  max-height: none !important;
+  border-bottom: 1px solid #e5e7eb;
+  background-color: #f8fafc;
+}
+
+/* Flashcard editor container positioning */
+.flashcard-question .w-md-editor,
+.flashcard-answer .w-md-editor {
+  border: none;
+  box-shadow: none;
+}
+
+/* More subtle container styling */
+.flashcard-question, 
+.flashcard-answer {
+  background-color: white;
+  transition: all 0.2s ease;
+}
+
+/* Remove border from the editor content area */
+.flashcard-question .w-md-editor-content,
+.flashcard-answer .w-md-editor-content {
+  border: none;
+}
+
+/* Reduce spacing in toolbar */
+.show-toolbar .w-md-editor-toolbar button {
+  margin: 0 1px;
+  padding: 3px;
+}
+
+/* Question/answer specific styling */
+.flashcard-question .w-md-editor-toolbar {
+  border-top: none;
+  background-color: transparent;
+}
+
+.flashcard-answer .w-md-editor-toolbar {
+  border-top: none;
+  background-color: transparent;
 }
