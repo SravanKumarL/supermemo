@@ -36,8 +36,12 @@ function AITopics({ onClose, onAddTopics }) {
       // Call AI service to generate topics
       const topics = await generateTopics(prompt);
       
+      console.log("Topics generated from prompt:", topics);
+      
       setSuggestedTopics(topics);
       setSelectedTopics(topics.map(topic => topic.id)); // Select all by default
+      
+      console.log("Selected topic IDs:", topics.map(topic => topic.id));
     } catch (error) {
       console.error("Error generating topics:", error);
       // Handle error - could show an error message to the user
@@ -48,11 +52,14 @@ function AITopics({ onClose, onAddTopics }) {
 
   // Toggle topic selection
   const toggleTopic = (topicId) => {
-    setSelectedTopics(prev => 
-      prev.includes(topicId)
+    console.log("Toggling topic selection for ID:", topicId);
+    setSelectedTopics(prev => {
+      const newSelection = prev.includes(topicId)
         ? prev.filter(id => id !== topicId)
-        : [...prev, topicId]
-    );
+        : [...prev, topicId];
+      console.log("Updated selected topics:", newSelection);
+      return newSelection;
+    });
   };
 
   // Handle adding topics to the tree
@@ -67,8 +74,12 @@ function AITopics({ onClose, onAddTopics }) {
         selectedTopics.includes(topic.id)
       );
       
+      console.log("Topics selected to add:", topicsToAdd);
+      
       // Create topic tree nodes with flashcards
       const topicNodes = await createTopicTreeNodes(topicsToAdd);
+      
+      console.log("Topic nodes created, passing to parent:", topicNodes);
       
       // Pass the created nodes to the parent component
       onAddTopics(topicNodes);

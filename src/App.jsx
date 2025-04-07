@@ -77,17 +77,28 @@ function App() {
 
   // Handle adding AI-generated topics to the tree
   const handleAddAITopics = useCallback((topicNodes) => {
-    if (!topicNodes || topicNodes.length === 0) return;
+    console.log("Received topic nodes to add:", topicNodes);
+    if (!topicNodes || topicNodes.length === 0) {
+      console.warn("No topic nodes to add");
+      return;
+    }
     
     setTreeData((currentTreeData) => {
+      console.log("Current tree data:", currentTreeData);
       // Create a deep copy of the current tree data
       const newTreeData = JSON.parse(JSON.stringify(currentTreeData));
       
       // Add each topic node to the root level
       topicNodes.forEach(node => {
-        newTreeData.push(node);
+        // Ensure nodes have unique IDs
+        const nodeWithId = {
+          ...node,
+          id: `topic-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`
+        };
+        newTreeData.push(nodeWithId);
       });
       
+      console.log("Updated tree data:", newTreeData);
       return newTreeData;
     });
   }, [setTreeData]);

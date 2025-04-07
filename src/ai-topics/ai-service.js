@@ -248,6 +248,8 @@ export const generateTopics = async (prompt) => {
  * @returns {Promise<Array>} - Array of flashcard objects
  */
 export const generateFlashcards = async (topic) => {
+  console.log("Generating flashcards for topic:", topic);
+  
   // Simulate network delay
   await new Promise(resolve => setTimeout(resolve, 1000));
   
@@ -368,7 +370,9 @@ export const generateFlashcards = async (topic) => {
   };
   
   // Return the appropriate flashcards based on the topic's category
-  return defaultFlashcards[topic.category] || defaultFlashcards["General"];
+  const flashcards = defaultFlashcards[topic.category] || defaultFlashcards["General"];
+  console.log(`Selected flashcards for category '${topic.category}':`, flashcards);
+  return flashcards;
 };
 
 /**
@@ -377,26 +381,36 @@ export const generateFlashcards = async (topic) => {
  * @returns {Promise<Array>} - Array of topic tree nodes with flashcards as children
  */
 export const createTopicTreeNodes = async (selectedTopics) => {
+  console.log("Creating topic tree nodes from:", selectedTopics);
   const topicNodes = [];
   
   for (const topic of selectedTopics) {
-    // Generate flashcards for this topic
-    const flashcards = await generateFlashcards(topic);
-    
-    // Create topic node with flashcards as children
-    const topicNode = {
-      title: topic.title,
-      type: "topic",
-      category: topic.category,
-      content: topic.description || "",
-      expanded: true,
-      author: "AI Assistant",
-      timestamp: new Date().toISOString().split('T')[0],
-      children: flashcards
-    };
-    
-    topicNodes.push(topicNode);
+    try {
+      // Generate flashcards for this topic
+      const flashcards = await generateFlashcards(topic);
+      console.log("Generated flashcards for topic:", topic.title, flashcards);
+      
+      // Create topic node with flashcards as children
+      const topicNode = {
+        title: topic.title,
+        type: "topic",
+        category: topic.category,
+        content: topic.description || "",
+        expanded: true,
+        author: "AI Assistant",
+        timestamp: new Date().toISOString().split('T')[0],
+        children: flashcards.map(card => ({
+          ...card,
+          id: Math.random().toString(36).substr(2, 9) // Add unique id if missing
+        }))
+      };
+      
+      topicNodes.push(topicNode);
+    } catch (error) {
+      console.error("Error creating topic node for:", topic.title, error);
+    }
   }
   
+  console.log("Final topic nodes:", topicNodes);
   return topicNodes;
 }; 
