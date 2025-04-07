@@ -1,9 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import MDEditor from "@uiw/react-md-editor";
 
 const Flashcard = ({ question, answer }) => {
   const [showAnswer, setShowAnswer] = useState(false);
   const [answered, setAnswered] = useState(false);
+  const [feedback, setFeedback] = useState("");
+  const [showFeedback, setShowFeedback] = useState(false);
+  const [selectedGrade, setSelectedGrade] = useState("");
   
   const handleShowAnswer = () => {
     setShowAnswer(true);
@@ -11,10 +14,60 @@ const Flashcard = ({ question, answer }) => {
   };
   
   const handleGrade = (grade) => {
-    // This would normally update spaced repetition algorithm
-    // For now we just reset the card
-    setShowAnswer(false);
-    setAnswered(false);
+    // Store the selected grade
+    setSelectedGrade(grade);
+    
+    // Show appropriate feedback based on grade
+    switch(grade) {
+      case 'again':
+        setFeedback("You'll see this card again soon to reinforce your memory.");
+        break;
+      case 'hard':
+        setFeedback("This was challenging. We'll review it again before long.");
+        break;
+      case 'good':
+        setFeedback("Good job! You're making progress with this concept.");
+        break;
+      case 'easy':
+        setFeedback("Perfect! You've mastered this concept.");
+        break;
+      default:
+        setFeedback("Card graded successfully!");
+    }
+    
+    // Show feedback
+    setShowFeedback(true);
+    
+    // Use timeout to simulate processing and move to next card
+    setTimeout(() => {
+      // Call the discover button functionality to move to next random card
+      const discoverButton = document.querySelector('button[class*="bg-gradient-to-r from-indigo-600 to-purple-600"]');
+      if (discoverButton) {
+        discoverButton.click();
+      }
+      
+      // Reset states
+      setShowAnswer(false);
+      setAnswered(false);
+      setShowFeedback(false);
+      setSelectedGrade("");
+    }, 1500); // 1.5 seconds delay to show feedback
+  };
+  
+  // Get feedback box style based on grade
+  const getFeedbackStyles = () => {
+    switch(selectedGrade) {
+      case 'again':
+        return "bg-red-100 border-l-4 border-red-500 text-red-700";
+      case 'hard':
+        return "bg-orange-100 border-l-4 border-orange-500 text-orange-700";
+      case 'good':
+        return "bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700";
+      case 'easy':
+        return "bg-green-100 border-l-4 border-green-500 text-green-700";
+      default:
+        return "bg-white text-gray-700";
+    }
   };
   
   return (
@@ -52,33 +105,41 @@ const Flashcard = ({ question, answer }) => {
           </button>
         ) : (
           <div>
-            <h3 className="text-sm text-center mb-3 text-gray-600">How well did you know this?</h3>
-            <div className="flashcard-grade-buttons">
-              <button 
-                className="flashcard-grade-button flashcard-grade-again"
-                onClick={() => handleGrade('again')}
-              >
-                Again
-              </button>
-              <button 
-                className="flashcard-grade-button flashcard-grade-hard"
-                onClick={() => handleGrade('hard')}
-              >
-                Hard
-              </button>
-              <button 
-                className="flashcard-grade-button flashcard-grade-good"
-                onClick={() => handleGrade('good')}
-              >
-                Good
-              </button>
-              <button 
-                className="flashcard-grade-button flashcard-grade-easy"
-                onClick={() => handleGrade('easy')}
-              >
-                Easy
-              </button>
-            </div>
+            {showFeedback ? (
+              <div className={`text-center py-3 px-4 rounded-lg shadow-sm animate-pulse ${getFeedbackStyles()}`}>
+                <p className="font-medium">{feedback}</p>
+              </div>
+            ) : (
+              <>
+                <h3 className="text-sm text-center mb-3 text-gray-600">How well did you know this?</h3>
+                <div className="flashcard-grade-buttons">
+                  <button 
+                    className="flashcard-grade-button flashcard-grade-again"
+                    onClick={() => handleGrade('again')}
+                  >
+                    Again
+                  </button>
+                  <button 
+                    className="flashcard-grade-button flashcard-grade-hard"
+                    onClick={() => handleGrade('hard')}
+                  >
+                    Hard
+                  </button>
+                  <button 
+                    className="flashcard-grade-button flashcard-grade-good"
+                    onClick={() => handleGrade('good')}
+                  >
+                    Good
+                  </button>
+                  <button 
+                    className="flashcard-grade-button flashcard-grade-easy"
+                    onClick={() => handleGrade('easy')}
+                  >
+                    Easy
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         )}
       </div>
