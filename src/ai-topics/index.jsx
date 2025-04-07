@@ -38,6 +38,57 @@ const PROMPT_SUGGESTIONS = [
   "Genetics"
 ];
 
+// Add this new component to simulate text diffusion effect
+const TextDiffusion = ({ finalText, duration = 1.5 }) => {
+  const [displayText, setDisplayText] = useState('');
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()-_=+[]{}|;:,.<>?/';
+  
+  useEffect(() => {
+    if (!finalText) return;
+    
+    let iterations = 0;
+    const maxIterations = 15;  // Increased from 10 to 15 for slower animation
+    const interval = Math.floor(duration * 1000 / maxIterations);
+    
+    const scrambleText = () => {
+      if (iterations >= maxIterations) {
+        setDisplayText(finalText);
+        return;
+      }
+      
+      // Calculate how much of the final text to reveal based on current iteration
+      const progress = iterations / maxIterations;
+      const revealLength = Math.ceil(finalText.length * progress);
+      
+      // Create scrambled text with progressively more correct characters
+      let result = '';
+      for (let i = 0; i < finalText.length; i++) {
+        if (i < revealLength) {
+          // Revealed part shows the correct character
+          result += finalText[i];
+        } else {
+          // Unrevealed part shows random character
+          const randomChar = characters.charAt(Math.floor(Math.random() * characters.length));
+          result += randomChar;
+        }
+      }
+      
+      setDisplayText(result);
+      iterations++;
+    };
+    
+    // Initial scramble
+    scrambleText();
+    
+    // Set up interval for animation
+    const timer = setInterval(scrambleText, interval);
+    
+    return () => clearInterval(timer);
+  }, [finalText, duration]);
+  
+  return <>{displayText}</>;
+};
+
 /**
  * AI Topics Modal Component
  * 
@@ -208,7 +259,7 @@ function AITopics({ onClose, onAddTopics }) {
       // Process topics in parallel to speed up
       await Promise.all(topicsToAdd.map(async (topic, topicIndex) => {
         // Add a slight delay between each topic to make the animation visible
-        await new Promise(resolve => setTimeout(resolve, 300 * topicIndex));
+        await new Promise(resolve => setTimeout(resolve, 1200 * topicIndex));
         
         // Add this topic to the progress
         setGenerationProgress(prev => ({
@@ -221,6 +272,9 @@ function AITopics({ onClose, onAddTopics }) {
         
         // Only show a limited number of subtopics (maximum 3)
         const limitedSubTopics = subTopics.slice(0, 3);
+        
+        // Wait a moment before showing subtopics
+        await new Promise(resolve => setTimeout(resolve, 1000));
         
         // Update all subtopics at once to speed up the animation
         setGenerationProgress(prev => ({
@@ -235,8 +289,14 @@ function AITopics({ onClose, onAddTopics }) {
         const subTopicNodes = [];
         setGenerationStep(2);
         
+        // Wait a moment before showing flashcards
+        await new Promise(resolve => setTimeout(resolve, 800));
+        
         // For each subtopic, generate and add a limited number of flashcards
-        await Promise.all(limitedSubTopics.map(async (subTopic) => {
+        await Promise.all(limitedSubTopics.map(async (subTopic, subTopicIndex) => {
+          // Add a delay between each subtopic's flashcards
+          await new Promise(resolve => setTimeout(resolve, 600 * subTopicIndex));
+          
           // Generate flashcards but only use a few
           const flashcards = await generateSubTopicFlashcards(subTopic, topic);
           const limitedFlashcards = flashcards.slice(0, 2); // Only keep 2 flashcards
@@ -349,29 +409,39 @@ function AITopics({ onClose, onAddTopics }) {
         parentTopicName = `${generatedTreeData[0].title} and related topics`;
       }
       
+      console.log("Creating parent topic:", parentTopicName);
+      console.log("Number of topics to add:", generatedTreeData.length);
+      
       // Ensure all nodes have proper IDs before adding to the main tree
-      const childNodes = generatedTreeData.map(topicNode => {
+      const childNodes = generatedTreeData.map((topicNode, index) => {
         // Create a unique ID for the topic if it doesn't have one
         const topicId = topicNode.id || `topic-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+        console.log(`Processing topic ${index + 1}/${generatedTreeData.length}: ${topicNode.title} (ID: ${topicId})`);
         
         // Process children (sub-topics)
-        const children = topicNode.children.map(subTopic => {
+        const children = (topicNode.children || []).map((subTopic, subIndex) => {
           // Create a unique ID for the sub-topic
           const subTopicId = subTopic.id || `subtopic-${topicId}-${Math.random().toString(36).substring(2, 9)}`;
+          console.log(`  Processing subtopic ${subIndex + 1}: ${subTopic.title} (ID: ${subTopicId})`);
           
           // Process flashcards within this sub-topic
-          const flashcards = subTopic.children ? subTopic.children.map(flashcard => {
+          const flashcards = (subTopic.children || []).map((flashcard, flashIndex) => {
             // Ensure each flashcard has an ID
+            const flashcardId = flashcard.id || `flashcard-${subTopicId}-${Math.random().toString(36).substring(2, 9)}`;
+            console.log(`    Processing flashcard ${flashIndex + 1}: ${flashcard.title} (ID: ${flashcardId})`);
+            
             return {
               ...flashcard,
-              id: flashcard.id || `flashcard-${subTopicId}-${Math.random().toString(36).substring(2, 9)}`
+              id: flashcardId,
+              type: "flashcard" // Ensure type is set correctly
             };
-          }) : [];
+          });
           
           // Return sub-topic with ID and processed flashcards
           return {
             ...subTopic,
             id: subTopicId,
+            type: "sub-topic", // Ensure type is set correctly
             children: flashcards
           };
         });
@@ -380,6 +450,7 @@ function AITopics({ onClose, onAddTopics }) {
         return {
           ...topicNode,
           id: topicId,
+          type: "topic", // Ensure type is set correctly
           children: children
         };
       });
@@ -397,27 +468,43 @@ function AITopics({ onClose, onAddTopics }) {
         children: childNodes
       };
       
-      // Add debug info
+      // Add detailed debug info
+      console.log("========== TOPIC TREE DATA ==========");
       console.log("Adding topics under a single parent topic:", mainParentTopic.title);
-      console.log("Parent topic structure:", JSON.stringify({
-        id: mainParentTopic.id,
-        title: mainParentTopic.title,
-        type: mainParentTopic.type,
-        childCount: mainParentTopic.children.length
-      }, null, 2));
+      console.log("Parent topic ID:", mainParentTopic.id);
+      console.log("Child topic count:", mainParentTopic.children.length);
+      console.log("Full structure:", JSON.stringify(mainParentTopic, null, 2));
       
-      // Pass the parent topic to the parent component with an empty function for error handling
+      // Pass the parent topic to the parent component
+      if (typeof onAddTopics !== 'function') {
+        console.error("onAddTopics is not a function:", onAddTopics);
+        alert("Error: The add topics function is not available. Please try again later.");
+        return;
+      }
+      
+      // Create a standalone copy of the topic structure to avoid any reference issues
+      const topicToAdd = JSON.parse(JSON.stringify(mainParentTopic));
+      
       try {
-        onAddTopics([mainParentTopic]);
+        console.log("Calling onAddTopics with:", [topicToAdd]);
+        
+        // Call the parent function
+        onAddTopics([topicToAdd]);
+        
         console.log("Topics successfully passed to parent component");
-        onClose();
+        
+        // Delay closing to ensure state updates are processed
+        setTimeout(() => {
+          console.log("Closing modal after successful topic addition");
+          onClose();
+        }, 500);
       } catch (error) {
         console.error("Error in onAddTopics:", error);
-        alert("There was an error adding the topics. Please try again.");
+        alert(`There was an error adding the topics: ${error.message}. Please try again.`);
       }
     } catch (error) {
       console.error("Error adding topics to tree:", error);
-      alert("Error adding topics to tree. Please try again.");
+      alert(`Error processing topics: ${error.message}. Please try again.`);
     }
   };
 
@@ -451,7 +538,7 @@ function AITopics({ onClose, onAddTopics }) {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ 
-                  duration: 0.5,
+                  duration: 2.0,
                   ease: "easeOut"
                 }}
                 ref={isLastTopic ? lastTopicRef : null}
@@ -459,9 +546,13 @@ function AITopics({ onClose, onAddTopics }) {
                 <div className="supermemo-node-content">
                   <div className="supermemo-node-title-container">
                     <div className="supermemo-node-icon supermemo-topic-icon">T</div>
-                    <div className="supermemo-node-title">{topic.title}</div>
+                    <div className="supermemo-node-title">
+                      <TextDiffusion finalText={topic.title} duration={2.5} />
+                    </div>
                     {topic.category && (
-                      <div className="supermemo-node-category">{topic.category}</div>
+                      <div className="supermemo-node-category">
+                        <TextDiffusion finalText={topic.category} duration={2.0} />
+                      </div>
                     )}
                   </div>
                 </div>
@@ -482,9 +573,9 @@ function AITopics({ onClose, onAddTopics }) {
                           initial={{ opacity: 0, x: -20 }}
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ 
-                            duration: 0.4,
+                            duration: 1.5,
                             ease: "easeOut",
-                            delay: 0.05
+                            delay: 0.5 + (subTopicIndex * 0.4)
                           }}
                           ref={isLastSubtopic ? (el) => {
                             lastSubtopicRefs.current[topic.id] = el;
@@ -493,7 +584,9 @@ function AITopics({ onClose, onAddTopics }) {
                           <div className="supermemo-node-content">
                             <div className="supermemo-node-title-container">
                               <div className="supermemo-node-icon supermemo-topic-icon" style={{ fontSize: "0.7rem" }}>ST</div>
-                              <div className="supermemo-node-title">{subTopic.title}</div>
+                              <div className="supermemo-node-title">
+                                <TextDiffusion finalText={subTopic.title} duration={2.0} />
+                              </div>
                             </div>
                           </div>
                           
@@ -514,9 +607,9 @@ function AITopics({ onClose, onAddTopics }) {
                                     initial={{ opacity: 0, scale: 0.95 }}
                                     animate={{ opacity: 1, scale: 1 }}
                                     transition={{ 
-                                      duration: 0.3,
+                                      duration: 1.2,
                                       ease: "easeOut",
-                                      delay: 0.05
+                                      delay: 0.8 + (flashcardIndex * 0.5)
                                     }}
                                     ref={isLastFlashcard ? (el) => {
                                       lastFlashcardRefs.current[topic.id] = el;
@@ -525,7 +618,9 @@ function AITopics({ onClose, onAddTopics }) {
                                     <div className="supermemo-node-content">
                                       <div className="supermemo-node-title-container">
                                         <div className="supermemo-node-icon supermemo-flashcard-icon" style={{ fontSize: "0.7rem" }}>F</div>
-                                        <div className="supermemo-node-title">{flashcard.title}</div>
+                                        <div className="supermemo-node-title">
+                                          <TextDiffusion finalText={flashcard.title} duration={1.8} />
+                                        </div>
                                       </div>
                                     </div>
                                   </motion.div>
@@ -545,15 +640,17 @@ function AITopics({ onClose, onAddTopics }) {
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ 
-                          duration: 0.4,
+                          duration: 1.0,
                           ease: "easeOut",
-                          delay: 0.05
+                          delay: 0.3 + (generationProgress.subTopics[topic.id]?.length || 0) * 0.2
                         }}
                       >
                         <div className="supermemo-node-content">
                           <div className="supermemo-node-title-container">
                             <div className="supermemo-node-icon supermemo-topic-icon" style={{ fontSize: "0.7rem" }}>OV</div>
-                            <div className="supermemo-node-title">Overview</div>
+                            <div className="supermemo-node-title">
+                              <TextDiffusion finalText="Overview" duration={1.0} />
+                            </div>
                           </div>
                         </div>
                         
@@ -565,15 +662,17 @@ function AITopics({ onClose, onAddTopics }) {
                               initial={{ opacity: 0, scale: 0.95 }}
                               animate={{ opacity: 1, scale: 1 }}
                               transition={{ 
-                                duration: 0.3,
+                                duration: 0.8,
                                 ease: "easeOut",
-                                delay: 0.05
+                                delay: 0.5 + (flashcardIndex * 0.3)
                               }}
                             >
                               <div className="supermemo-node-content">
                                 <div className="supermemo-node-title-container">
                                   <div className="supermemo-node-icon supermemo-flashcard-icon" style={{ fontSize: "0.7rem" }}>F</div>
-                                  <div className="supermemo-node-title">{flashcard.title}</div>
+                                  <div className="supermemo-node-title">
+                                    <TextDiffusion finalText={flashcard.title} duration={1.0} />
+                                  </div>
                                 </div>
                               </div>
                             </motion.div>
