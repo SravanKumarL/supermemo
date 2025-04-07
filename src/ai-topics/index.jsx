@@ -90,7 +90,7 @@ function AITopics({ onClose, onAddTopics }) {
       >
         {/* Header */}
         <div className="ai-topics-header">
-          <h2>Create Topics with AI</h2>
+          <h2>Generate Learning Map</h2>
           <button className="close-button" onClick={onClose}>
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -103,8 +103,6 @@ function AITopics({ onClose, onAddTopics }) {
         <div className="ai-topics-content">
           {suggestedTopics.length === 0 ? (
             <div className="prompt-container">
-              <p className="ai-instruction">Ask me what you want to learn about, and I'll suggest topics and create flashcards for you.</p>
-              
               <form onSubmit={handleSubmit}>
                 <textarea
                   value={prompt}
@@ -113,6 +111,22 @@ function AITopics({ onClose, onAddTopics }) {
                   rows="4"
                   className="prompt-input"
                 />
+              
+                {/* Prompt suggestion bubbles */}
+                <div className="prompt-suggestion-bubbles">
+                  <div className="suggestion-bubbles">
+                    {PROMPT_SUGGESTIONS.map((suggestion, index) => (
+                      <div 
+                        key={index}
+                        className="suggestion-bubble"
+                        onClick={() => handleSuggestionClick(suggestion)}
+                      >
+                        {suggestion}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                
                 <button 
                   type="submit" 
                   className="generate-button"
@@ -121,26 +135,10 @@ function AITopics({ onClose, onAddTopics }) {
                   {isLoading ? (
                     <div className="loading-spinner"></div>
                   ) : (
-                    <>Generate Topics</>
+                    <>Generate Map</>
                   )}
                 </button>
               </form>
-              
-              {/* Prompt suggestion bubbles */}
-              <div className="prompt-suggestion-bubbles">
-                <p className="suggestions-title">Or try one of these topics:</p>
-                <div className="suggestion-bubbles">
-                  {PROMPT_SUGGESTIONS.map((suggestion, index) => (
-                    <div 
-                      key={index}
-                      className="suggestion-bubble"
-                      onClick={() => handleSuggestionClick(suggestion)}
-                    >
-                      {suggestion}
-                    </div>
-                  ))}
-                </div>
-              </div>
             </div>
           ) : (
             <div className="topics-result">
