@@ -3,11 +3,27 @@ import { motion, AnimatePresence } from "framer-motion";
 import "./index.css";
 import { generateTopics, createTopicTreeNodes } from "./ai-service";
 
+// Shorter prompt suggestions
+const PROMPT_SUGGESTIONS = [
+  "Quantum physics",
+  "Machine learning",
+  "Blockchain",
+  "Psychology",
+  "Chemistry",
+  "World history",
+  "Astronomy"
+];
+
 function AITopics({ onClose, onAddTopics }) {
   const [prompt, setPrompt] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [suggestedTopics, setSuggestedTopics] = useState([]);
   const [selectedTopics, setSelectedTopics] = useState([]);
+
+  // Handle prompt suggestion click
+  const handleSuggestionClick = (suggestion) => {
+    setPrompt(`I want to learn about ${suggestion}`);
+  };
 
   // Handle prompt submission
   const handleSubmit = async (e) => {
@@ -88,6 +104,7 @@ function AITopics({ onClose, onAddTopics }) {
           {suggestedTopics.length === 0 ? (
             <div className="prompt-container">
               <p className="ai-instruction">Ask me what you want to learn about, and I'll suggest topics and create flashcards for you.</p>
+              
               <form onSubmit={handleSubmit}>
                 <textarea
                   value={prompt}
@@ -108,6 +125,22 @@ function AITopics({ onClose, onAddTopics }) {
                   )}
                 </button>
               </form>
+              
+              {/* Prompt suggestion bubbles */}
+              <div className="prompt-suggestion-bubbles">
+                <p className="suggestions-title">Or try one of these topics:</p>
+                <div className="suggestion-bubbles">
+                  {PROMPT_SUGGESTIONS.map((suggestion, index) => (
+                    <div 
+                      key={index}
+                      className="suggestion-bubble"
+                      onClick={() => handleSuggestionClick(suggestion)}
+                    >
+                      {suggestion}
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           ) : (
             <div className="topics-result">
