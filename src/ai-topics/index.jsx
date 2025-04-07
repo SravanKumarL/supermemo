@@ -1,9 +1,24 @@
+/**
+ * AI Topics Component
+ * 
+ * A modal interface that allows users to generate and select AI-suggested learning topics
+ * based on a prompt. Selected topics can be added to the learning tree.
+ * 
+ * Features:
+ * - Prompt suggestions for quick topic generation
+ * - AI-generated topic suggestions
+ * - Selection of which topics to add to the tree
+ * - Automatic flashcard generation for selected topics
+ */
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import "./index.css";
 import { generateTopics, createTopicTreeNodes } from "./ai-service";
 
-// Shorter prompt suggestions
+/**
+ * Predefined prompt suggestions to help users get started quickly
+ * @type {Array<string>}
+ */
 const PROMPT_SUGGESTIONS = [
   "Quantum physics",
   "Machine learning",
@@ -14,18 +29,33 @@ const PROMPT_SUGGESTIONS = [
   "Astronomy"
 ];
 
+/**
+ * AI Topics Modal Component
+ * 
+ * @param {Object} props - Component props
+ * @param {Function} props.onClose - Function to call when the modal is closed
+ * @param {Function} props.onAddTopics - Function to call with generated topic nodes when adding to tree
+ * @returns {JSX.Element} The AI Topics modal component
+ */
 function AITopics({ onClose, onAddTopics }) {
+  // State management
   const [prompt, setPrompt] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [suggestedTopics, setSuggestedTopics] = useState([]);
   const [selectedTopics, setSelectedTopics] = useState([]);
 
-  // Handle prompt suggestion click
+  /**
+   * Handles clicking on a prompt suggestion by setting it as the current prompt
+   * @param {string} suggestion - The suggestion text to use
+   */
   const handleSuggestionClick = (suggestion) => {
     setPrompt(`I want to learn about ${suggestion}`);
   };
 
-  // Handle prompt submission
+  /**
+   * Handles submission of the prompt to generate topics
+   * @param {Event} e - The form submit event
+   */
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!prompt.trim()) return;
@@ -50,7 +80,10 @@ function AITopics({ onClose, onAddTopics }) {
     }
   };
 
-  // Toggle topic selection
+  /**
+   * Toggles selection state of a topic 
+   * @param {number|string} topicId - ID of the topic to toggle
+   */
   const toggleTopic = (topicId) => {
     console.log("Toggling topic selection for ID:", topicId);
     setSelectedTopics(prev => {
@@ -62,7 +95,9 @@ function AITopics({ onClose, onAddTopics }) {
     });
   };
 
-  // Handle adding topics to the tree
+  /**
+   * Processes selected topics, generates flashcards, and adds them to the tree
+   */
   const handleAddTopics = async () => {
     if (selectedTopics.length === 0) return;
     
@@ -99,7 +134,7 @@ function AITopics({ onClose, onAddTopics }) {
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: 20 }}
       >
-        {/* Header */}
+        {/* Header Section */}
         <div className="ai-topics-header">
           <h2>Generate Learning Map</h2>
           <button className="close-button" onClick={onClose}>
@@ -110,9 +145,10 @@ function AITopics({ onClose, onAddTopics }) {
           </button>
         </div>
         
-        {/* Content */}
+        {/* Content Section - Conditionally shows either prompt input or topic selection */}
         <div className="ai-topics-content">
           {suggestedTopics.length === 0 ? (
+            /* Prompt Input View */
             <div className="prompt-container">
               <form onSubmit={handleSubmit}>
                 <textarea
@@ -123,7 +159,7 @@ function AITopics({ onClose, onAddTopics }) {
                   className="prompt-input"
                 />
               
-                {/* Prompt suggestion bubbles */}
+                {/* Prompt suggestion bubbles for quick selection */}
                 <div className="prompt-suggestion-bubbles">
                   <div className="suggestion-bubbles">
                     {PROMPT_SUGGESTIONS.map((suggestion, index) => (
@@ -148,10 +184,12 @@ function AITopics({ onClose, onAddTopics }) {
               </form>
             </div>
           ) : (
+            /* Topic Selection View */
             <div className="topics-result">
               <h3>Suggested Topics</h3>
               <p className="selection-instruction">Select topics you want to add to your learning tree:</p>
               
+              {/* Interactive topic selection bubbles */}
               <div className="topic-bubbles">
                 {suggestedTopics.map(topic => (
                   <div 
@@ -167,6 +205,7 @@ function AITopics({ onClose, onAddTopics }) {
                 ))}
               </div>
               
+              {/* Action buttons for topic selection view */}
               <div className="action-buttons">
                 <button 
                   className="secondary-button" 

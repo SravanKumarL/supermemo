@@ -1,6 +1,9 @@
 /**
  * ContentTree Component
- * With improved search clearing functionality
+ * 
+ * A hierarchical tree view for organizing and managing educational content.
+ * Supports searching, node selection, editing, and drag-and-drop functionality.
+ * Mimics SuperMemo-style interface for learning content organization.
  */
 
 import "../supermemo-tree.css"; // Adjust path as needed
@@ -14,6 +17,14 @@ import TreeHeader from "./header";
 import SearchInput from "./header/search";
 import { rootNodeSelectionPayload } from "../shared";
 
+/**
+ * ContentTree component for hierarchical display of learning content
+ * 
+ * @param {Array} treeData - The hierarchical data to display in the tree
+ * @param {Function} onTreeDataChanged - Callback when tree data is modified
+ * @param {Function} onNodeSelect - Callback when a node is selected
+ * @returns {JSX.Element} The rendered content tree component
+ */
 function ContentTree({ treeData, onTreeDataChanged, onNodeSelect }) {
   // Search-related state
   const [searchString, setSearchString] = useState("");
@@ -31,7 +42,9 @@ function ContentTree({ treeData, onTreeDataChanged, onNodeSelect }) {
   // Animation effect for node selection
   const [animatingNode, setAnimatingNode] = useState(null);
 
-  // Function to clear search results and reset search state
+  /**
+   * Clears the current search and resets search-related state
+   */
   const clearSearch = () => {
     setSearchString("");
     setSearchFocusIndex(0);
@@ -39,10 +52,15 @@ function ContentTree({ treeData, onTreeDataChanged, onNodeSelect }) {
     setMatches([]);
   };
 
+  /**
+   * Handles changes in node selection and updates related state
+   * @param {Object} node - The selected node
+   * @param {Array} path - The path to the selected node
+   */
   const onNodeSelectionChanged = useCallback(
     (node, path) => {
       let changed = false;
-      if (selectedNode?.node !== node && selectedNode?.path !== path) {
+      if (selectedNode?.node !== node && selectedNode?.path !== path.join("-")) {
         setSelectedNode({ node: node, path: path.join("-") });
         changed = true;
       }
@@ -72,6 +90,11 @@ function ContentTree({ treeData, onTreeDataChanged, onNodeSelect }) {
     onNodeSelectionChanged(selectedNode.node, selectedPath);
   }, [onNodeSelectionChanged, selectedNode, selectedPath, treeData]);
 
+  /**
+   * Handles changes to the tree data structure
+   * Ensures all nodes have children arrays and handles selection updates
+   * @param {Array} treeData - Updated tree data array
+   */
   const handleTreeChange = useCallback(
     (treeData) => {
       const ensureChildrenArray = (nodes) => {
@@ -105,6 +128,12 @@ function ContentTree({ treeData, onTreeDataChanged, onNodeSelect }) {
     [onNodeSelectionChanged, onTreeDataChanged, selectedNode, selectedPath]
   );
 
+  /**
+   * Determines if a node can be dropped at a particular location
+   * Prevents circular references in the tree structure
+   * @param {Object} params - Drop parameters
+   * @returns {boolean} Whether the drop operation is allowed
+   */
   const canDrop = ({ node, nextParent, prevPath, nextPath }) => {
     if (prevPath && nextPath) {
       const prevPathStr = prevPath.join("-");
@@ -114,11 +143,20 @@ function ContentTree({ treeData, onTreeDataChanged, onNodeSelect }) {
     return true;
   };
 
+  /**
+   * Custom search method for finding nodes in the tree
+   * @param {Object} params - Search parameters
+   * @returns {boolean} Whether the node matches the search query
+   */
   const customSearchMethod = ({ node, searchQuery }) => {
     if (!searchQuery) return false;
     return node.title.toLowerCase().indexOf(searchQuery.toLowerCase()) > -1;
   };
 
+  /**
+   * Shows a preview of a matched node from search
+   * @param {Object} matchNode - The matched node to preview
+   */
   const showPreview = useCallback(
     (matchNode) => {
       if (matchNode && matchNode.node.type) {
@@ -131,12 +169,14 @@ function ContentTree({ treeData, onTreeDataChanged, onNodeSelect }) {
     [onNodeSelect]
   );
 
+  // Effect to show preview of focused search result
   useEffect(() => {
     if (matches.length > 0 && searchFocusIndex < matches.length) {
       showPreview(matches[searchFocusIndex]);
     }
   }, [searchFocusIndex, matches, showPreview]);
 
+  // Effect to handle keyboard navigation in search results
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (!searchString) return;
@@ -192,6 +232,12 @@ function ContentTree({ treeData, onTreeDataChanged, onNodeSelect }) {
     onNodeSelectionChanged,
   ]);
 
+  /**
+   * Handles the change of a node's title in the tree
+   * @param {Object} node - The node being edited
+   * @param {Array} path - Path to the node in the tree
+   * @param {string} newTitle - New title for the node
+   */
   const handleTitleChange = useCallback(
     (node, path, newTitle) => {
       onTreeDataChanged(
@@ -206,6 +252,12 @@ function ContentTree({ treeData, onTreeDataChanged, onNodeSelect }) {
     [onTreeDataChanged, treeData]
   );
 
+  /**
+   * Generates additional props for each node in the tree
+   * Handles node styling, selection, and interaction events
+   * @param {Object} params - Node parameters
+   * @returns {Object} Additional props for the node
+   */
   const generateNodeProps = useCallback(
     ({ node, path }) => {
       const isSelected = selectedNode && selectedNode.path === path.join("-");
@@ -321,6 +373,7 @@ function ContentTree({ treeData, onTreeDataChanged, onNodeSelect }) {
     ]
   );
 
+  // Effect to handle clicking outside an editing node
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (editingNode && !e.target.closest(".supermemo-node-input")) {

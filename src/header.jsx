@@ -1,3 +1,9 @@
+/**
+ * Header component for the Serendipity application.
+ * Displays the application logo, title, and tagline in a styled header bar.
+ * Includes animated effects on hover for visual interest.
+ * @returns {JSX.Element} The header component
+ */
 const Header = () => {
   return (
     <header className="bg-white border-b border-indigo-100 py-4 px-8 mb-4">

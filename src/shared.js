@@ -1,3 +1,12 @@
+/**
+ * Shared utilities and constants for the Serendipity application.
+ * This file contains sample data, helper functions, and constants used throughout the application.
+ */
+
+/**
+ * Initial tree data structure with sample content.
+ * This provides a starting point for the application with example topics and flashcards.
+ */
 export const initialData = [
   {
     title: "Physics",
@@ -253,6 +262,13 @@ export const initialData = [
   }
 ];
 
+/**
+ * Helper function to flatten the tree data structure into a normalized array.
+ * @param {Array} treeData - The hierarchical tree data to normalize
+ * @param {Array} normalizedTreeData - Accumulator for the normalized data
+ * @returns {Array} The flattened array of all nodes
+ * @private
+ */
 const _normalizeTreeData = (treeData, normalizedTreeData = []) => {
   (treeData || []).forEach((item) => {
     normalizedTreeData.push(item);
@@ -263,10 +279,29 @@ const _normalizeTreeData = (treeData, normalizedTreeData = []) => {
   return normalizedTreeData;
 };
 
+/**
+ * Normalizes tree data into a flat array for easier processing.
+ * @param {Array} treeData - The hierarchical tree data to normalize
+ * @returns {Array} The flattened array of all nodes
+ */
 export const normalizeTreeData = _normalizeTreeData;
 
+/**
+ * Returns the root node of the tree and its path for initial selection.
+ * @param {Array} treeData - The hierarchical tree data
+ * @returns {Array} An array containing the root node and its path
+ */
 export const rootNodeSelectionPayload = (treeData) => [treeData[0], [0]];
 
+/**
+ * Generates a random integer between min and max, different from the current value.
+ * Used for the "Discover" feature to randomly select a different node.
+ * 
+ * @param {number} min - The minimum value (inclusive)
+ * @param {number} max - The maximum value (inclusive)
+ * @param {number} current - The current value to exclude
+ * @returns {number} A random integer different from the current value
+ */
 export function getRandomIntExcept(min, max, current) {
   min = Math.ceil(min);
   max = Math.floor(max);

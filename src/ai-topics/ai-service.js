@@ -2,10 +2,21 @@
  * AI Service for generating topics and flashcards
  * 
  * This service provides functions for interacting with an AI to generate
- * learning content based on user prompts.
+ * learning content based on user prompts. It simulates the behavior of an AI
+ * by providing predefined responses for common topics.
+ * 
+ * The service supports:
+ * - Generating topic suggestions based on user input
+ * - Creating flashcards for selected topics
+ * - Building a hierarchical topic tree with flashcards as children
  */
 
-// Topic suggestions for different subject areas
+/**
+ * Predefined topic suggestions for different subject areas.
+ * Each topic includes an ID, title, category, and description.
+ * These are used to simulate AI-generated content.
+ * @type {Object.<string, Array>}
+ */
 const TOPIC_SUGGESTIONS = {
   "quantum physics": [
     { 
@@ -191,7 +202,11 @@ const TOPIC_SUGGESTIONS = {
   ]
 };
 
-// Default topics for when no match is found
+/**
+ * Default topics provided when no specific match is found in the user's prompt.
+ * These generic topics can be applied to any subject area.
+ * @type {Array}
+ */
 const DEFAULT_TOPICS = [
   { 
     id: 1, 
@@ -220,9 +235,12 @@ const DEFAULT_TOPICS = [
 ];
 
 /**
- * Generate topics based on a user prompt
+ * Generate topics based on a user prompt.
+ * This function simulates an AI response by matching keywords in the prompt
+ * to predefined topic categories.
+ * 
  * @param {string} prompt - The user's prompt or question
- * @returns {Promise<Array>} - Array of topic objects
+ * @returns {Promise<Array>} - Array of topic objects with id, title, category, and description
  */
 export const generateTopics = async (prompt) => {
   // Simulate network delay
@@ -243,9 +261,11 @@ export const generateTopics = async (prompt) => {
 };
 
 /**
- * Generate flashcards for a specific topic
- * @param {Object} topic - The topic object
- * @returns {Promise<Array>} - Array of flashcard objects
+ * Generate flashcards for a specific topic.
+ * This function creates template flashcards based on the topic's category.
+ * 
+ * @param {Object} topic - The topic object with title and category
+ * @returns {Promise<Array>} - Array of flashcard objects with title, type, category, and content
  */
 export const generateFlashcards = async (topic) => {
   console.log("Generating flashcards for topic:", topic);
@@ -376,7 +396,9 @@ export const generateFlashcards = async (topic) => {
 };
 
 /**
- * Create topic tree structure from selected topics and their flashcards
+ * Create a hierarchical topic tree structure from selected topics and their flashcards.
+ * This function builds a tree where topics are parent nodes and flashcards are children.
+ * 
  * @param {Array} selectedTopics - Array of topic objects selected by the user
  * @returns {Promise<Array>} - Array of topic tree nodes with flashcards as children
  */

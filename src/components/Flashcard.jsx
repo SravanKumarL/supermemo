@@ -1,18 +1,34 @@
 import React, { useState, useEffect } from 'react';
 import MDEditor from "@uiw/react-md-editor";
 
+/**
+ * Flashcard component - Displays a question/answer flashcard with spaced repetition grading.
+ * Implements a simple SuperMemo-style interface with four difficulty grades.
+ * 
+ * @param {string} question - The markdown content for the question side of the flashcard
+ * @param {string} answer - The markdown content for the answer side of the flashcard
+ * @returns {JSX.Element} The rendered flashcard component
+ */
 const Flashcard = ({ question, answer }) => {
+  // State for tracking flashcard interaction
   const [showAnswer, setShowAnswer] = useState(false);
   const [answered, setAnswered] = useState(false);
   const [feedback, setFeedback] = useState("");
   const [showFeedback, setShowFeedback] = useState(false);
   const [selectedGrade, setSelectedGrade] = useState("");
   
+  /**
+   * Reveals the answer side of the flashcard
+   */
   const handleShowAnswer = () => {
     setShowAnswer(true);
     setAnswered(true);
   };
   
+  /**
+   * Handles the user's self-assessment of how well they knew the answer
+   * @param {string} grade - One of: 'again', 'hard', 'good', or 'easy'
+   */
   const handleGrade = (grade) => {
     // Store the selected grade
     setSelectedGrade(grade);
@@ -46,7 +62,7 @@ const Flashcard = ({ question, answer }) => {
         discoverButton.click();
       }
       
-      // Reset states
+      // Reset states for next card
       setShowAnswer(false);
       setAnswered(false);
       setShowFeedback(false);
@@ -54,7 +70,10 @@ const Flashcard = ({ question, answer }) => {
     }, 1500); // 1.5 seconds delay to show feedback
   };
   
-  // Get feedback box style based on grade
+  /**
+   * Returns CSS class names for the feedback box based on selected grade
+   * @returns {string} CSS class names for styling the feedback box
+   */
   const getFeedbackStyles = () => {
     switch(selectedGrade) {
       case 'again':
@@ -95,7 +114,7 @@ const Flashcard = ({ question, answer }) => {
         </div>
       </div>
       
-      {/* Answer Section */}
+      {/* Answer Section - Only shown after user requests it */}
       {showAnswer && (
         <div className="bg-white border-y border-gray-200 p-6">
           <div className="flashcard-study-answer min-h-[100px]">
@@ -107,7 +126,7 @@ const Flashcard = ({ question, answer }) => {
         </div>
       )}
       
-      {/* Control Section */}
+      {/* Controls Section - Changes based on study state */}
       <div className="bg-blue-50 p-6 rounded-b-xl">
         {!answered ? (
           <button 
