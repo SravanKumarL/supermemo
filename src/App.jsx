@@ -39,12 +39,16 @@ function App() {
    * @param {Object} nodeData - The selected node's data
    */
   const handleNodeSelect = useCallback((nodeData) => {
-    setSelectedContent({ ...nodeData, shouldFocusContent: true });
+    setSelectedContent({ ...nodeData, isPreview: true, shouldFocusContent: true });
   }, []);
 
   const handleContentChange = useCallback(
     (content) => {
       if (!deepEquals(selectedContent, content)) {
+        // Update the selected content in memory
+        setSelectedContent({ ...content });
+        
+        // Update the tree data
         setTreeData((treeData) =>
           changeNodeAtPath({
             treeData,
@@ -55,7 +59,7 @@ function App() {
         );
       }
     },
-    [selectedContent, setTreeData]
+    [selectedContent, setTreeData, setSelectedContent]
   );
 
   const handleDiscoverClick = useCallback(() => {

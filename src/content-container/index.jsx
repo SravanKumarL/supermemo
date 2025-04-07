@@ -506,7 +506,7 @@ const defaultContent = {
 
 function ContentContainer({ initialContent, onContentChange }) {
   const [content, setContent] = useState(initialContent || defaultContent);
-  const [isPreview, setIsPreview] = useState(false);
+  const [isPreview, setIsPreview] = useState(true);
 
   useEffect(() => {
     setContent({
@@ -515,7 +515,10 @@ function ContentContainer({ initialContent, onContentChange }) {
         ? new Date(initialContent.timestamp)
         : null,
     });
-    setIsPreview(!!initialContent.isPreview);
+    // Only update isPreview if it's explicitly defined in initialContent
+    if ('isPreview' in initialContent) {
+      setIsPreview(!!initialContent.isPreview);
+    }
   }, [initialContent]);
 
   const updateContent = useCallback((field, value) => {
@@ -529,11 +532,12 @@ function ContentContainer({ initialContent, onContentChange }) {
       if (onContentChange) {
         onContentChange({
           ...content,
+          isPreview,
           timestamp: content.timestamp.toISOString().substring(0, 10),
         });
       }
     },
-    [content, onContentChange]
+    [content, onContentChange, isPreview]
   );
 
   // Determine content type and color scheme

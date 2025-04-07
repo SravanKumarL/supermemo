@@ -56,7 +56,7 @@ function ContentTree({ treeData, onTreeDataChanged, onNodeSelect }) {
           path,
           content: node.content || "",
           topic: path.length > 0 ? path[0]?.title || "" : "",
-          isPreview: false,
+          isPreview: true,
           shouldFocusContent: true,
         });
       }
