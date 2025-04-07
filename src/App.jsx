@@ -105,16 +105,28 @@ function App() {
         
         // Add each topic node to the root level
         topicNodes.forEach(node => {
-          // Ensure nodes have unique IDs
+          // Ensure node has all required fields
           const nodeWithId = {
             ...node,
-            id: `topic-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`
+            id: node.id || `topic-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+            expanded: true
           };
+          
+          // Ensure all children have IDs
+          if (nodeWithId.children && Array.isArray(nodeWithId.children)) {
+            nodeWithId.children = nodeWithId.children.map(child => ({
+              ...child,
+              id: child.id || `child-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+              expanded: true
+            }));
+          }
+          
           newTreeData.push(nodeWithId);
           console.log("Successfully added node to tree:", nodeWithId.title);
         });
         
         console.log("Tree data updated successfully. New length:", newTreeData.length);
+        console.log("First item in tree after update:", newTreeData[newTreeData.length - 1]);
         return newTreeData;
       } catch (error) {
         console.error("Error updating tree data:", error);

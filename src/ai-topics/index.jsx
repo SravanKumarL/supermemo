@@ -10,10 +10,11 @@
  * - Selection of which topics to add to the tree
  * - Automatic flashcard generation for selected topics
  */
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import "./index.css";
-import { generateTopics, createTopicTreeNodes } from "./ai-service";
+import "../supermemo-tree.css"; // Import SuperMemo tree styles
+import { generateTopics, createTopicTreeNodes, generateSubTopics, generateFlashcards, generateSubTopicFlashcards } from "./ai-service";
 
 /**
  * Predefined prompt suggestions to help users get started quickly
@@ -22,11 +23,19 @@ import { generateTopics, createTopicTreeNodes } from "./ai-service";
 const PROMPT_SUGGESTIONS = [
   "Quantum physics",
   "Machine learning",
+  "Neural networks",
   "Blockchain",
+  "Cryptocurrency",
   "Psychology",
+  "Cognitive psychology",
   "Chemistry",
+  "Organic chemistry",
   "World history",
-  "Astronomy"
+  "Ancient civilizations",
+  "Astronomy",
+  "Astrophysics",
+  "Biology",
+  "Genetics"
 ];
 
 /**
@@ -43,6 +52,47 @@ function AITopics({ onClose, onAddTopics }) {
   const [isLoading, setIsLoading] = useState(false);
   const [suggestedTopics, setSuggestedTopics] = useState([]);
   const [selectedTopics, setSelectedTopics] = useState([]);
+  const [generatedTreeData, setGeneratedTreeData] = useState(null);
+  const [showGenerationView, setShowGenerationView] = useState(false);
+  const [generationStep, setGenerationStep] = useState(0);
+  const [generationProgress, setGenerationProgress] = useState({
+    topics: [],
+    subTopics: {},
+    flashcards: {}
+  });
+  
+  // Refs for auto-scrolling
+  const generationContainerRef = useRef(null);
+  const lastTopicRef = useRef(null);
+  const lastSubtopicRefs = useRef({});
+  const lastFlashcardRefs = useRef({});
+
+  // Effect for auto-scrolling to the most recently added items
+  useEffect(() => {
+    if (lastTopicRef.current) {
+      lastTopicRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  }, [generationProgress.topics.length]);
+
+  useEffect(() => {
+    const topicIds = Object.keys(generationProgress.subTopics);
+    if (topicIds.length > 0) {
+      const lastTopicId = topicIds[topicIds.length - 1];
+      if (lastSubtopicRefs.current[lastTopicId]) {
+        lastSubtopicRefs.current[lastTopicId].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    }
+  }, [generationProgress.subTopics]);
+
+  useEffect(() => {
+    const topicIds = Object.keys(generationProgress.flashcards);
+    if (topicIds.length > 0) {
+      const lastTopicId = topicIds[topicIds.length - 1];
+      if (lastFlashcardRefs.current[lastTopicId]) {
+        lastFlashcardRefs.current[lastTopicId].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    }
+  }, [generationProgress.flashcards]);
 
   /**
    * Handles clicking on a prompt suggestion by setting it as the current prompt
@@ -68,11 +118,12 @@ function AITopics({ onClose, onAddTopics }) {
       
       console.log("Topics generated from prompt:", topics);
       
-      // Store the suggested topics
-      setSuggestedTopics(topics);
+      // Store the suggested topics (limit to 5)
+      const limitedTopics = topics.slice(0, 5);
+      setSuggestedTopics(limitedTopics);
       
       // Select all topics by default (store just the IDs)
-      const topicIds = topics.map(topic => topic.id);
+      const topicIds = limitedTopics.map(topic => topic.id);
       setSelectedTopics(topicIds);
       
       console.log("Selected topic IDs:", topicIds);
@@ -112,17 +163,21 @@ function AITopics({ onClose, onAddTopics }) {
   };
 
   /**
-   * Processes selected topics, generates flashcards, and adds them to the tree
+   * Shows the animated generation of the learning map
    */
-  const handleAddTopics = async () => {
+  const handleStartGeneration = async () => {
     if (selectedTopics.length === 0) {
       console.warn("No topics selected, cannot add to tree");
       return;
     }
     
-    console.log("Starting handleAddTopics with selected topic IDs:", selectedTopics);
+    console.log("Starting generation animation with selected topic IDs:", selectedTopics);
     
     setIsLoading(true);
+    setShowGenerationView(true);
+    setGenerationStep(1);
+    // Reset the tree data to avoid stale data
+    setGeneratedTreeData(null);
     
     try {
       // Create a map of ID strings to make lookup faster
@@ -134,34 +189,432 @@ function AITopics({ onClose, onAddTopics }) {
       );
       
       console.log("Topics selected to add:", topicsToAdd);
-      console.log("Number of topics to add:", topicsToAdd.length);
       
       if (topicsToAdd.length === 0) {
         console.error("No matching topics found to add despite having selected topics");
         setIsLoading(false);
+        setShowGenerationView(false);
         return;
       }
       
-      // Create topic tree nodes with flashcards
-      const topicNodes = await createTopicTreeNodes(topicsToAdd);
+      // Reset refs for auto-scrolling
+      lastSubtopicRefs.current = {};
+      lastFlashcardRefs.current = {};
       
-      console.log("Topic nodes created, passing to parent:", topicNodes);
-      console.log("Number of topic nodes created:", topicNodes.length);
+      // First create the full topic nodes to ensure consistency
+      const generatedNodes = [];
       
-      if (!topicNodes || topicNodes.length === 0) {
-        console.error("No topic nodes were created");
-        setIsLoading(false);
-        return;
-      }
+      // Start animating topic generation
+      // Process topics in parallel to speed up
+      await Promise.all(topicsToAdd.map(async (topic, topicIndex) => {
+        // Add a slight delay between each topic to make the animation visible
+        await new Promise(resolve => setTimeout(resolve, 300 * topicIndex));
+        
+        // Add this topic to the progress
+        setGenerationProgress(prev => ({
+          ...prev,
+          topics: [...prev.topics, topic]
+        }));
+        
+        // Generate sub-topics for this topic
+        const subTopics = await generateSubTopics(topic);
+        
+        // Only show a limited number of subtopics (maximum 3)
+        const limitedSubTopics = subTopics.slice(0, 3);
+        
+        // Update all subtopics at once to speed up the animation
+        setGenerationProgress(prev => ({
+          ...prev,
+          subTopics: {
+            ...prev.subTopics,
+            [topic.id]: limitedSubTopics
+          }
+        }));
+        
+        // Create array to hold sub-topic nodes with their flashcards
+        const subTopicNodes = [];
+        setGenerationStep(2);
+        
+        // For each subtopic, generate and add a limited number of flashcards
+        await Promise.all(limitedSubTopics.map(async (subTopic) => {
+          // Generate flashcards but only use a few
+          const flashcards = await generateSubTopicFlashcards(subTopic, topic);
+          const limitedFlashcards = flashcards.slice(0, 2); // Only keep 2 flashcards
+          
+          // Update flashcards state
+          setGenerationProgress(prev => ({
+            ...prev,
+            flashcards: {
+              ...prev.flashcards,
+              [topic.id]: {
+                ...prev.flashcards[topic.id],
+                [subTopic.title]: limitedFlashcards
+              }
+            }
+          }));
+          
+          // Create sub-topic node with limited flashcards as children
+          const subTopicNode = {
+            title: subTopic.title,
+            type: "sub-topic",
+            category: subTopic.category,
+            content: subTopic.description || "",
+            expanded: true,
+            children: limitedFlashcards.map(card => ({
+              ...card,
+              id: card.id || Math.random().toString(36).substr(2, 9)
+            }))
+          };
+          
+          subTopicNodes.push(subTopicNode);
+        }));
+        
+        // Add just 1 general flashcard for overview
+        const generalFlashcards = await generateFlashcards(topic);
+        const singleGeneralFlashcard = generalFlashcards.slice(0, 1);
+        
+        setGenerationProgress(prev => ({
+          ...prev,
+          flashcards: {
+            ...prev.flashcards,
+            [topic.id]: {
+              ...prev.flashcards[topic.id],
+              overview: singleGeneralFlashcard
+            }
+          }
+        }));
+        
+        const generalFlashcardsNode = {
+          title: "Overview",
+          type: "sub-topic",
+          category: topic.category,
+          content: "General concepts and principles of the topic.",
+          expanded: true,
+          children: singleGeneralFlashcard.map(card => ({
+            ...card,
+            id: card.id || Math.random().toString(36).substr(2, 9)
+          }))
+        };
+        
+        // Create topic node with sub-topics as children
+        const topicNode = {
+          title: topic.title,
+          type: "topic",
+          category: topic.category,
+          content: topic.description || "",
+          expanded: true,
+          author: "AI Assistant",
+          timestamp: new Date().toISOString().split('T')[0],
+          children: [generalFlashcardsNode, ...subTopicNodes]
+        };
+        
+        // Store the generated node
+        generatedNodes.push(topicNode);
+      }));
       
-      // Pass the created nodes to the parent component
-      onAddTopics(topicNodes);
-      onClose();
-    } catch (error) {
-      console.error("Error adding topics:", error);
+      console.log("Generated tree nodes:", generatedNodes);
+      
+      // Set the entire tree data at once to ensure consistency
+      setGeneratedTreeData(generatedNodes);
+      
+      // Set generation step to completed
+      setGenerationStep(3);
       setIsLoading(false);
-      // Handle error - could show an error message to the user
+      
+    } catch (error) {
+      console.error("Error generating topics:", error);
+      setIsLoading(false);
+      setShowGenerationView(false);
     }
+  };
+
+  /**
+   * Confirms and adds the generated topics to the tree
+   */
+  const handleConfirmAddition = () => {
+    if (!generatedTreeData || generatedTreeData.length === 0) {
+      console.error("No topic nodes were created to confirm");
+      return;
+    }
+    
+    try {
+      // Generate a parent topic name based on the selected topics
+      let parentTopicName;
+      if (generatedTreeData.length === 1) {
+        parentTopicName = generatedTreeData[0].title;
+      } else if (generatedTreeData.length === 2) {
+        parentTopicName = `${generatedTreeData[0].title} and ${generatedTreeData[1].title}`;
+      } else {
+        // Use the first topic and indicate there are more
+        parentTopicName = `${generatedTreeData[0].title} and related topics`;
+      }
+      
+      // Ensure all nodes have proper IDs before adding to the main tree
+      const childNodes = generatedTreeData.map(topicNode => {
+        // Create a unique ID for the topic if it doesn't have one
+        const topicId = topicNode.id || `topic-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+        
+        // Process children (sub-topics)
+        const children = topicNode.children.map(subTopic => {
+          // Create a unique ID for the sub-topic
+          const subTopicId = subTopic.id || `subtopic-${topicId}-${Math.random().toString(36).substring(2, 9)}`;
+          
+          // Process flashcards within this sub-topic
+          const flashcards = subTopic.children ? subTopic.children.map(flashcard => {
+            // Ensure each flashcard has an ID
+            return {
+              ...flashcard,
+              id: flashcard.id || `flashcard-${subTopicId}-${Math.random().toString(36).substring(2, 9)}`
+            };
+          }) : [];
+          
+          // Return sub-topic with ID and processed flashcards
+          return {
+            ...subTopic,
+            id: subTopicId,
+            children: flashcards
+          };
+        });
+        
+        // Return topic with ID and processed children
+        return {
+          ...topicNode,
+          id: topicId,
+          children: children
+        };
+      });
+      
+      // Create a single parent topic that contains all the generated topics as children
+      const mainParentTopic = {
+        title: parentTopicName,
+        type: "topic",
+        category: generatedTreeData[0].category || "Learning Map",
+        content: `A collection of topics related to ${parentTopicName}.`,
+        expanded: true,
+        author: "AI Assistant",
+        timestamp: new Date().toISOString().split('T')[0],
+        id: `main-topic-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+        children: childNodes
+      };
+      
+      // Add debug info
+      console.log("Adding topics under a single parent topic:", mainParentTopic.title);
+      console.log("Parent topic structure:", JSON.stringify({
+        id: mainParentTopic.id,
+        title: mainParentTopic.title,
+        type: mainParentTopic.type,
+        childCount: mainParentTopic.children.length
+      }, null, 2));
+      
+      // Pass the parent topic to the parent component with an empty function for error handling
+      try {
+        onAddTopics([mainParentTopic]);
+        console.log("Topics successfully passed to parent component");
+        onClose();
+      } catch (error) {
+        console.error("Error in onAddTopics:", error);
+        alert("There was an error adding the topics. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error adding topics to tree:", error);
+      alert("Error adding topics to tree. Please try again.");
+    }
+  };
+
+  /**
+   * Cancels the topic addition and returns to selection
+   */
+  const handleCancelAddition = () => {
+    setShowGenerationView(false);
+    setGenerationStep(0);
+    setGeneratedTreeData(null);
+    setGenerationProgress({
+      topics: [],
+      subTopics: {},
+      flashcards: {}
+    });
+  };
+
+  // Render the animated generation view
+  const renderGenerationView = () => {
+    return (
+      <div className="generation-view">
+        <h3>Generating Learning Map</h3>
+        
+        <div className="generation-container supermemo-tree-content" ref={generationContainerRef}>
+          {generationProgress.topics.map((topic, topicIndex) => {
+            const isLastTopic = topicIndex === generationProgress.topics.length - 1;
+            return (
+              <motion.div 
+                key={topic.id}
+                className="generated-topic supermemo-node"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ 
+                  duration: 0.5,
+                  ease: "easeOut"
+                }}
+                ref={isLastTopic ? lastTopicRef : null}
+              >
+                <div className="supermemo-node-content">
+                  <div className="supermemo-node-title-container">
+                    <div className="supermemo-node-icon supermemo-topic-icon">T</div>
+                    <div className="supermemo-node-title">{topic.title}</div>
+                    {topic.category && (
+                      <div className="supermemo-node-category">{topic.category}</div>
+                    )}
+                  </div>
+                </div>
+                
+                {generationProgress.subTopics[topic.id] && (
+                  <div className="generated-subtopics" style={{ marginLeft: "24px" }}>
+                    {generationProgress.subTopics[topic.id].map((subTopic, subTopicIndex) => {
+                      const isLastSubtopic = subTopicIndex === (generationProgress.subTopics[topic.id]?.length || 0) - 1;
+                      
+                      if (isLastSubtopic) {
+                        lastSubtopicRefs.current[topic.id] = null;
+                      }
+                      
+                      return (
+                        <motion.div 
+                          key={`${topic.id}-${subTopic.title}`}
+                          className="generated-subtopic supermemo-node"
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ 
+                            duration: 0.4,
+                            ease: "easeOut",
+                            delay: 0.05
+                          }}
+                          ref={isLastSubtopic ? (el) => {
+                            lastSubtopicRefs.current[topic.id] = el;
+                          } : null}
+                        >
+                          <div className="supermemo-node-content">
+                            <div className="supermemo-node-title-container">
+                              <div className="supermemo-node-icon supermemo-topic-icon" style={{ fontSize: "0.7rem" }}>ST</div>
+                              <div className="supermemo-node-title">{subTopic.title}</div>
+                            </div>
+                          </div>
+                          
+                          {generationProgress.flashcards[topic.id] && 
+                           generationProgress.flashcards[topic.id][subTopic.title] && (
+                            <div className="generated-flashcards" style={{ marginLeft: "24px" }}>
+                              {generationProgress.flashcards[topic.id][subTopic.title].map((flashcard, flashcardIndex) => {
+                                const isLastFlashcard = flashcardIndex === (generationProgress.flashcards[topic.id][subTopic.title]?.length || 0) - 1;
+                                
+                                if (isLastFlashcard) {
+                                  lastFlashcardRefs.current[topic.id] = null;
+                                }
+                                
+                                return (
+                                  <motion.div 
+                                    key={flashcard.id || `${topic.id}-${subTopic.title}-${flashcardIndex}`}
+                                    className="generated-flashcard supermemo-node"
+                                    initial={{ opacity: 0, scale: 0.95 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    transition={{ 
+                                      duration: 0.3,
+                                      ease: "easeOut",
+                                      delay: 0.05
+                                    }}
+                                    ref={isLastFlashcard ? (el) => {
+                                      lastFlashcardRefs.current[topic.id] = el;
+                                    } : null}
+                                  >
+                                    <div className="supermemo-node-content">
+                                      <div className="supermemo-node-title-container">
+                                        <div className="supermemo-node-icon supermemo-flashcard-icon" style={{ fontSize: "0.7rem" }}>F</div>
+                                        <div className="supermemo-node-title">{flashcard.title}</div>
+                                      </div>
+                                    </div>
+                                  </motion.div>
+                                )
+                              })}
+                            </div>
+                          )}
+                        </motion.div>
+                      )
+                    })}
+                    
+                    {/* Overview flashcards */}
+                    {generationProgress.flashcards[topic.id] && 
+                     generationProgress.flashcards[topic.id].overview && (
+                      <motion.div 
+                        className="generated-subtopic supermemo-node"
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ 
+                          duration: 0.4,
+                          ease: "easeOut",
+                          delay: 0.05
+                        }}
+                      >
+                        <div className="supermemo-node-content">
+                          <div className="supermemo-node-title-container">
+                            <div className="supermemo-node-icon supermemo-topic-icon" style={{ fontSize: "0.7rem" }}>OV</div>
+                            <div className="supermemo-node-title">Overview</div>
+                          </div>
+                        </div>
+                        
+                        <div className="generated-flashcards" style={{ marginLeft: "24px" }}>
+                          {generationProgress.flashcards[topic.id].overview.map((flashcard, flashcardIndex) => (
+                            <motion.div 
+                              key={flashcard.id || `${topic.id}-overview-${flashcardIndex}`}
+                              className="generated-flashcard supermemo-node"
+                              initial={{ opacity: 0, scale: 0.95 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              transition={{ 
+                                duration: 0.3,
+                                ease: "easeOut",
+                                delay: 0.05
+                              }}
+                            >
+                              <div className="supermemo-node-content">
+                                <div className="supermemo-node-title-container">
+                                  <div className="supermemo-node-icon supermemo-flashcard-icon" style={{ fontSize: "0.7rem" }}>F</div>
+                                  <div className="supermemo-node-title">{flashcard.title}</div>
+                                </div>
+                              </div>
+                            </motion.div>
+                          ))}
+                        </div>
+                      </motion.div>
+                    )}
+                  </div>
+                )}
+              </motion.div>
+            )
+          })}
+        </div>
+        
+        {generationStep === 3 && generatedTreeData && (
+          <div className="action-buttons">
+            <button 
+              className="secondary-button" 
+              onClick={handleCancelAddition}
+              disabled={isLoading}
+            >
+              Back to Selection
+            </button>
+            <button 
+              className="primary-button"
+              onClick={handleConfirmAddition}
+              disabled={isLoading}
+            >
+              Confirm and Add as Learning Map
+            </button>
+          </div>
+        )}
+        
+        {generationStep < 3 && (
+          <div className="generation-status">
+            <div className="loading-spinner"></div>
+            <p>{generationStep === 1 ? "Generating topics..." : "Creating subtopics & flashcards..."}</p>
+          </div>
+        )}
+      </div>
+    );
   };
 
   return (
@@ -183,9 +636,11 @@ function AITopics({ onClose, onAddTopics }) {
           </button>
         </div>
         
-        {/* Content Section - Conditionally shows either prompt input or topic selection */}
+        {/* Content Section - Conditionally shows either prompt input, topic selection, or generation view */}
         <div className="ai-topics-content">
-          {suggestedTopics.length === 0 ? (
+          {showGenerationView ? (
+            renderGenerationView()
+          ) : suggestedTopics.length === 0 ? (
             /* Prompt Input View */
             <div className="prompt-container">
               <form onSubmit={handleSubmit}>
@@ -264,10 +719,10 @@ function AITopics({ onClose, onAddTopics }) {
                 </button>
                 <button 
                   className="primary-button"
-                  onClick={handleAddTopics}
+                  onClick={handleStartGeneration}
                   disabled={isLoading || selectedTopics.length === 0}
                 >
-                  Add {selectedTopics.length} {selectedTopics.length === 1 ? 'Topic' : 'Topics'}
+                  Generate {selectedTopics.length} {selectedTopics.length === 1 ? 'Topic' : 'Topics'}
                 </button>
               </div>
             </div>
