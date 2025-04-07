@@ -114,9 +114,21 @@ const TreeHeader = ({
   return (
     <div className="supermemo-tree-header">
       <div className="flex justify-between items-center mb-4">
-        <h3 className="supermemo-tree-title">Content Tree</h3>
+        <h3 className="supermemo-tree-title flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <path d="M12 3L6 9H9L5 13H8L4 17H20L16 13H19L15 9H18L12 3Z" fill="#22c55e" stroke="#16a34a" strokeWidth="1" />
+            <rect x="11" y="17" width="2" height="5" fill="#7c2d12" stroke="#7c2d12" strokeWidth="0.5" />
+          </svg>
+          Content Tree
+        </h3>
         <div className="supermemo-tree-buttons">
-          <button className="supermemo-tree-button" onClick={toggleTree}>
+          <button className="supermemo-tree-button flex items-center gap-2" onClick={toggleTree}>
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="16" viewBox="0 0 44 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              {/* Switch background */}
+              <rect x="2" y="2" width="40" height="20" rx="10" ry="10" fill={isExpanded ? "#4ade80" : "#93c5fd"} stroke="none" />
+              {/* Switch knob */}
+              <circle cx={isExpanded ? "32" : "12"} cy="12" r="8" fill="white" stroke="none" />
+            </svg>
             Toggle Tree
           </button>
         </div>
@@ -132,7 +144,15 @@ const TreeHeader = ({
           disabled={!selectedNode}
           title="Add Topic"
         >
-          <span className="supermemo-button-icon supermemo-topic-icon">T</span>
+          <span className="supermemo-button-icon supermemo-topic-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="16" y1="13" x2="8" y2="13"></line>
+              <line x1="16" y1="17" x2="8" y2="17"></line>
+              <line x1="10" y1="9" x2="8" y2="9"></line>
+            </svg>
+          </span>
         </button>
         <button
           className={`supermemo-action-button ${
@@ -143,7 +163,10 @@ const TreeHeader = ({
           title="Add Flashcard"
         >
           <span className="supermemo-button-icon supermemo-flashcard-icon">
-            L
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="2" y="4" width="20" height="16" rx="2" ry="2"></rect>
+              <line x1="2" y1="10" x2="22" y2="10"></line>
+            </svg>
           </span>
         </button>
         <button
