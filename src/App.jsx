@@ -14,6 +14,7 @@ import { getRandomIntExcept, initialData, normalizeTreeData } from "./shared";
 import { useLocalStorage } from "@uidotdev/usehooks";
 import { changeNodeAtPath } from "@nosferatu500/react-sortable-tree";
 import deepEquals from "fast-deep-equal";
+import AITopics from "./ai-topics";
 
 function App() {
   // Initial tree data structure with sample content
@@ -22,6 +23,8 @@ function App() {
   const [selectedContent, setSelectedContent] = useState(null);
   // By default, the root node is selected
   const [selectedNodeIndex, setSelectedNodeIndex] = useState(0);
+  // State to control AI Topics modal visibility
+  const [showAITopics, setShowAITopics] = useState(false);
   /**
    * Simulated database of searchable items
    * TODO: Replace with actual data source
@@ -72,6 +75,23 @@ function App() {
     setSelectedNodeIndex(newSelectedNodeIdx);
   }, [allItems, handleNodeSelect, selectedNodeIndex]);
 
+  // Handle adding AI-generated topics to the tree
+  const handleAddAITopics = useCallback((topicNodes) => {
+    if (!topicNodes || topicNodes.length === 0) return;
+    
+    setTreeData((currentTreeData) => {
+      // Create a deep copy of the current tree data
+      const newTreeData = JSON.parse(JSON.stringify(currentTreeData));
+      
+      // Add each topic node to the root level
+      topicNodes.forEach(node => {
+        newTreeData.push(node);
+      });
+      
+      return newTreeData;
+    });
+  }, [setTreeData]);
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header Section */}
@@ -93,7 +113,22 @@ function App() {
           {/* Main Content Area */}
           <div className="w-3/4 space-y-4">
             {/* Search Bar */}
-            <Search allItems={allItems} onSelect={handleNodeSelect} />
+            <div className="flex items-center gap-4">
+              <div className="flex-1">
+                <Search allItems={allItems} onSelect={handleNodeSelect} />
+              </div>
+              
+              {/* AI Topics Button */}
+              <button
+                onClick={() => setShowAITopics(true)}
+                className="px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-medium rounded-lg shadow-md hover:shadow-lg transition-all duration-300 flex items-center gap-2"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 2v6m0 0v6m0-6h6m-6 0H6"></path>
+                </svg>
+                Create with AI
+              </button>
+            </div>
 
             {/* Content Display Area */}
             {selectedContent ? (
@@ -122,12 +157,13 @@ function App() {
         </div>
       </div>
 
-      {/* Settings Button - Fixed Position */}
-      {/* <div className="fixed top-4 right-4">
-        <button className="p-2 text-gray-600 hover:text-gray-800 transition-colors duration-200">
-          <i className="fas fa-cog text-xl"></i>
-        </button>
-      </div> */}
+      {/* AI Topics Modal */}
+      {showAITopics && (
+        <AITopics 
+          onClose={() => setShowAITopics(false)}
+          onAddTopics={handleAddAITopics}
+        />
+      )}
     </div>
   );
 }
