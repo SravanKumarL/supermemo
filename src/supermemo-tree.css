@@ -187,9 +187,9 @@
 
 /* AI generated node icons */
 .supermemo-ai-topic-icon {
-  background: linear-gradient(135deg, #8b5cf6, #4f46e5);
+  background: linear-gradient(135deg, #f59e0b, #d97706);
   color: white;
-  box-shadow: 0 2px 6px rgba(79, 70, 229, 0.35);
+  box-shadow: 0 2px 6px rgba(217, 119, 6, 0.35);
   position: relative;
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.6);
@@ -214,9 +214,9 @@
 }
 
 .supermemo-ai-flashcard-icon {
-  background: linear-gradient(135deg, #6366f1, #3b82f6);
+  background: linear-gradient(135deg, #0ea5e9, #2dd4bf);
   color: white;
-  box-shadow: 0 2px 6px rgba(59, 130, 246, 0.35);
+  box-shadow: 0 2px 6px rgba(14, 165, 233, 0.35);
   position: relative;
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.6);
@@ -241,9 +241,9 @@
 }
 
 .supermemo-ai-subtopic-icon {
-  background: linear-gradient(135deg, #a855f7, #6366f1);
+  background: linear-gradient(135deg, #84cc16, #10b981);
   color: white;
-  box-shadow: 0 2px 6px rgba(167, 139, 250, 0.35);
+  box-shadow: 0 2px 6px rgba(16, 185, 129, 0.35);
   position: relative;
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.6);
@@ -286,17 +286,17 @@
 
 .supermemo-node:hover .supermemo-ai-topic-icon {
   transform: rotate(-5deg) scale(1.1);
-  box-shadow: 0 3px 8px rgba(79, 70, 229, 0.4);
+  box-shadow: 0 3px 8px rgba(217, 119, 6, 0.4);
 }
 
 .supermemo-node:hover .supermemo-ai-flashcard-icon {
   transform: rotate(5deg) scale(1.1);
-  box-shadow: 0 3px 8px rgba(59, 130, 246, 0.4);
+  box-shadow: 0 3px 8px rgba(14, 165, 233, 0.4);
 }
 
 .supermemo-node:hover .supermemo-ai-subtopic-icon {
   transform: rotate(0deg) scale(1.1);
-  box-shadow: 0 3px 8px rgba(167, 139, 250, 0.4);
+  box-shadow: 0 3px 8px rgba(16, 185, 129, 0.4);
 }
 
 .supermemo-node-title {
