@@ -126,6 +126,25 @@
   border-radius: 0 2px 2px 0;
 }
 
+/* Highlight for newly added nodes */
+.supermemo-node-new {
+  position: relative;
+  transition: background-color 1s ease;
+}
+
+.supermemo-node-new::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: linear-gradient(to bottom, #22c55e, #16a34a);
+  border-radius: 0 2px 2px 0;
+  opacity: var(--indicator-opacity, 1);
+  transition: opacity 1s ease;
+}
+
 .supermemo-node-content {
   display: flex;
   align-items: center;

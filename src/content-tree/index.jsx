@@ -252,34 +252,116 @@ function ContentTree({ treeData, onTreeDataChanged, onNodeSelect }) {
     [onTreeDataChanged, treeData]
   );
 
+  // Add this function to check if a node should still be highlighted
+  const shouldHighlight = useCallback((node) => {
+    if (!node.isNew || !node.highlightUntil) return false;
+    
+    const now = Date.now();
+    const timeLeft = node.highlightUntil - now;
+    
+    // If time has expired, don't highlight
+    if (timeLeft <= 0) return false;
+    
+    // Return true if we still have time left
+    return true;
+  }, []);
+  
+  // Add this function to get highlight intensity
+  const getHighlightOpacity = useCallback((node) => {
+    if (!node.isNew || !node.highlightUntil) return 0;
+    
+    const now = Date.now();
+    const timeLeft = node.highlightUntil - now;
+    
+    // If time has expired, don't highlight
+    if (timeLeft <= 0) return 0;
+    
+    // Calculate duration (assuming 20 seconds from the timestamp we set)
+    const totalDuration = 20 * 1000;
+    const elapsed = totalDuration - timeLeft;
+    
+    // Fade out over the last 5 seconds (1/4 of the duration)
+    if (timeLeft < 5000) {
+      return timeLeft / 5000;
+    }
+    
+    return 1; // Full opacity otherwise
+  }, []);
+
+  // Periodically check if highlights should be removed
+  useEffect(() => {
+    // If there are no highlights, don't set up the interval
+    const hasHighlights = treeData.some(node => 
+      shouldHighlight(node) || 
+      (node.children?.some(child => 
+        shouldHighlight(child) || 
+        child.children?.some(grandchild => shouldHighlight(grandchild))
+      ))
+    );
+    
+    if (!hasHighlights) return;
+    
+    // Set up interval to refresh UI and remove expired highlights
+    const interval = setInterval(() => {
+      onTreeDataChanged(prevTreeData => {
+        // No changes needed, just trigger a re-render
+        return [...prevTreeData];
+      });
+    }, 1000); // Check every second for smoother fade out
+    
+    return () => clearInterval(interval);
+  }, [treeData, shouldHighlight, onTreeDataChanged]);
+
   /**
-   * Generates additional props for each node in the tree
-   * Handles node styling, selection, and interaction events
-   * @param {Object} params - Node parameters
-   * @returns {Object} Additional props for the node
+   * Generates node props for the SortableTree component
+   * @param {Object} rowInfo - Information about the current tree row
+   * @returns {Object} Props for the node
    */
   const generateNodeProps = useCallback(
-    ({ node, path }) => {
-      const isSelected = selectedNode && selectedNode.path === path.join("-");
-      const isEditing = editingNode && editingNode.path === path.join("-");
-      const isAnimating = animatingNode === path.join("-");
+    (rowInfo) => {
+      const { node, path } = rowInfo;
+      const nodePath = path.join("-");
+
+      // Check if this node is currently selected
+      const isSelected =
+        selectedNode?.path === nodePath ||
+        (selectedNode?.node?.id && selectedNode.node.id === node.id);
+
+      // Check if node is being edited
+      const isEditing =
+        editingNode?.path === nodePath ||
+        (editingNode?.node?.id && editingNode.node.id === node.id);
+
+      // Check if node is being animated after search selection
+      const isAnimating = animatingNode === nodePath;
+
+      // Check if the node is newly added and should be highlighted
+      const isNewlyAdded = shouldHighlight(node);
+      const highlightOpacity = isNewlyAdded ? getHighlightOpacity(node) : 0;
+      
+      // Create inline styles for the highlight with dynamic opacity
+      const highlightStyle = isNewlyAdded ? {
+        backgroundColor: `rgba(218, 255, 224, ${highlightOpacity * 0.35})`,
+        '--indicator-opacity': highlightOpacity.toString(), // Custom property for the pseudo-element
+      } : {};
 
       return {
         onClick: (e) => {
-          e.preventDefault();
-          const nodePath = path.join("-");
           const currentTime = new Date().getTime();
+          const isDoubleClick =
+            currentTime - lastClickTime < DOUBLE_CLICK_THRESHOLD;
 
-          // Set animation on click
-          setAnimatingNode(nodePath);
-          setTimeout(() => setAnimatingNode(null), 500);
-
-          if (
-            isSelected &&
-            currentTime - lastClickTime < DOUBLE_CLICK_THRESHOLD
-          ) {
-            setEditingNode({ node, path: nodePath });
-            e.stopPropagation();
+          if (isDoubleClick) {
+            // If double-clicked, go into edit mode
+            if (
+              node.title &&
+              !node.title.startsWith("New") &&
+              !searchString &&
+              !isEditing
+            ) {
+              setEditingNode({ node, path: nodePath });
+              e.stopPropagation();
+            }
           } else {
             if (isSelected) {
               onTreeDataChanged((prevTreeData) =>
@@ -313,7 +395,9 @@ function ContentTree({ treeData, onTreeDataChanged, onNodeSelect }) {
                      ? "supermemo-node-search-match"
                      : ""
                  }
-                 ${isAnimating ? "animate-pulse" : ""}`,
+                 ${isAnimating ? "animate-pulse" : ""}
+                 ${isNewlyAdded ? "supermemo-node-new" : ""}`,
+        style: highlightStyle,
         title: (
           <div className="supermemo-node-content">
             {isEditing ? (
@@ -383,6 +467,8 @@ function ContentTree({ treeData, onTreeDataChanged, onNodeSelect }) {
       onTreeDataChanged,
       onNodeSelectionChanged,
       handleTitleChange,
+      shouldHighlight,
+      getHighlightOpacity,
     ]
   );
 
