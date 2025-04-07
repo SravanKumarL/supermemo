@@ -38,6 +38,10 @@ const TreeHeader = ({
         category: selectedNode.node?.title || "",
         content: "",
         children: type === "topic" ? [] : undefined,
+        ...(type === "flashcard" && {
+          question: "",
+          answer: "",
+        }),
       };
 
       const targetPath = selectedNode.path.split("-").map(Number);

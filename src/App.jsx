@@ -39,7 +39,15 @@ function App() {
    * @param {Object} nodeData - The selected node's data
    */
   const handleNodeSelect = useCallback((nodeData) => {
-    setSelectedContent({ ...nodeData, shouldFocusContent: true });
+    setSelectedContent({
+      ...nodeData,
+      shouldFocusContent: true,
+      // Always open flashcard in study mode
+      ...(nodeData.type === "flashcard" && {
+        isPreview: true,
+        shouldFocusContent: false,
+      }),
+    });
   }, []);
 
   const handleContentChange = useCallback(
@@ -97,6 +105,7 @@ function App() {
                 <ContentContainer
                   initialContent={selectedContent}
                   onContentChange={handleContentChange}
+                  discoverNext={handleDiscoverClick}
                 />
                 {/* Discover Button */}
                 <div className="flex justify-center mt-4 pb-4">

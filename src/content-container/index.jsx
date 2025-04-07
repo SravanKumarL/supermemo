@@ -2,39 +2,12 @@
  * ContentContainer Component with Markdown Editor
  */
 
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import "./index.css";
-import MDEditor from "@uiw/react-md-editor";
-
-function useFocusEditor(content) {
-  const editorRef = useRef(null);
-  // Focus content field when shouldFocusContent is true or content changes
-  useEffect(() => {
-    if (content.shouldFocusContent && editorRef.current) {
-      // Try to find the textarea in the wmde-markdown-var container
-      const textarea = editorRef.current.querySelector(
-        ".w-md-editor-text-input textarea"
-      );
-      if (textarea) {
-        // Use setTimeout to ensure the editor is fully rendered
-        setTimeout(() => {
-          textarea.focus();
-        }, 0);
-      } else {
-        // Fallback: try to find any textarea in the editor
-        const fallbackTextarea = editorRef.current.querySelector("textarea");
-        if (fallbackTextarea) {
-          setTimeout(() => {
-            fallbackTextarea.focus();
-          }, 0);
-        }
-      }
-    }
-  }, [content]);
-  return editorRef;
-}
+import Markdown from "./markdown";
+import FlashcardContentArea from "./flashcard";
 
 function Footer({
   isFlashcard,
@@ -273,7 +246,7 @@ function Footer({
   );
 }
 
-function ToggleMarkDownBtn({ isPreview, onPreviewUpdated }) {
+function ToggleMarkDownBtn({ isPreview, onPreviewUpdated, toggleBtnText }) {
   return (
     <div className="flex justify-end">
       <button
@@ -306,7 +279,7 @@ function ToggleMarkDownBtn({ isPreview, onPreviewUpdated }) {
                 d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
               />
             </svg>
-            View
+            {toggleBtnText.preview}
           </>
         ) : (
           <>
@@ -324,7 +297,7 @@ function ToggleMarkDownBtn({ isPreview, onPreviewUpdated }) {
               />
             </svg>
             <span className="font-mono font-bold text-sm bg-gradient-to-r from-blue-500 to-indigo-600 bg-clip-text text-transparent">
-              M↓
+              {toggleBtnText.edit}
             </span>
           </>
         )}
@@ -333,8 +306,7 @@ function ToggleMarkDownBtn({ isPreview, onPreviewUpdated }) {
   );
 }
 
-function ContentArea({ isPreview, content, onContentUpdated }) {
-  const editorRef = useFocusEditor(content);
+function TopicContentArea({ isPreview, content, onContentUpdated }) {
   const handleContentChange = useCallback(
     (value) => {
       onContentUpdated("content", value);
@@ -343,37 +315,13 @@ function ContentArea({ isPreview, content, onContentUpdated }) {
   );
 
   return (
-    <div className="bg-white border-y border-gray-200">
-      {isPreview ? (
-        <div className="markdown-preview pt-4 px-6 pb-6 min-h-[300px]">
-          <MDEditor.Markdown source={content.content || ""} />
-        </div>
-      ) : (
-        <div className="markdown-editor-container p-2" ref={editorRef}>
-          <div
-            className={`relative ${
-              isPreview ? "hide-toolbar" : "show-toolbar"
-            }`}
-          >
-            <MDEditor
-              value={content.content}
-              onChange={handleContentChange}
-              height={350}
-              preview="edit"
-              hideToolbar={false}
-              textareaProps={{
-                placeholder:
-                  content.type === "topic"
-                    ? "Add content for this topic..."
-                    : "Enter flashcard content here...",
-                // onFocus: () => setIsEditorFocused(true),
-                // onBlur: () => setIsEditorFocused(false),
-              }}
-            />
-          </div>
-        </div>
-      )}
-    </div>
+    <Markdown
+      height={350}
+      content={content.content}
+      isPreview={isPreview}
+      onContentUpdated={handleContentChange}
+      placeholderText="Add content for this topic..."
+    />
   );
 }
 
@@ -383,6 +331,7 @@ function Header({
   onPreviewUpdated,
   content,
   onContentUpdated,
+  toggleBtnText,
 }) {
   const handleInputChange = useCallback(
     (e) => {
@@ -419,6 +368,7 @@ function Header({
           <ToggleMarkDownBtn
             isPreview={isPreview}
             onPreviewUpdated={onPreviewUpdated}
+            toggleBtnText={toggleBtnText}
           />
         </div>
       </div>
@@ -436,7 +386,7 @@ const defaultContent = {
   source: "",
 };
 
-function ContentContainer({ initialContent, onContentChange }) {
+function ContentContainer({ initialContent, onContentChange, discoverNext }) {
   const [content, setContent] = useState(initialContent || defaultContent);
   const [isPreview, setIsPreview] = useState(false);
 
@@ -487,6 +437,16 @@ function ContentContainer({ initialContent, onContentChange }) {
         border: "border-violet-200",
         footer: "bg-violet-100",
       };
+  const toggleBtnText =
+    content.type === "topic"
+      ? {
+          preview: "View",
+          edit: "M↓",
+        }
+      : {
+          preview: "Study Mode",
+          edit: "Edit Mode",
+        };
 
   return (
     <div
@@ -502,13 +462,23 @@ function ContentContainer({ initialContent, onContentChange }) {
         isPreview={isPreview}
         onContentUpdated={updateContent}
         onPreviewUpdated={setIsPreview}
+        toggleBtnText={toggleBtnText}
       />
 
-      <ContentArea
-        content={content}
-        isPreview={isPreview}
-        onContentUpdated={updateContent}
-      />
+      {isFlashcard ? (
+        <FlashcardContentArea
+          isPreview={isPreview}
+          content={content}
+          onContentUpdated={updateContent}
+          discoverNext={discoverNext}
+        />
+      ) : (
+        <TopicContentArea
+          content={content}
+          isPreview={isPreview}
+          onContentUpdated={updateContent}
+        />
+      )}
 
       <Footer
         colorScheme={colorScheme}

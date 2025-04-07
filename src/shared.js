@@ -47,6 +47,9 @@ export const initialData = [
             timestamp: "2025-03-19",
             source: "https://example.com/astronomy/order-of-planets-from-sun",
             content:
+              "What is the Hubble Space Telescope?\n---\nThe Hubble Space Telescope is a space telescope that was launched into low Earth orbit in 1990 and remains in operation.",
+            question: "What is the Hubble Space Telescope?",
+            answer:
               "The Hubble Space Telescope is a space telescope that was launched into low Earth orbit in 1990 and remains in operation.",
           },
         ],
@@ -89,6 +92,9 @@ export const initialData = [
             timestamp: "2025-03-19",
             source: "https://example.com/astronomy/order-of-planets-from-sun",
             content:
+              "What is Newton's First Law of Motion?\n---\nAn object at rest stays at rest and an object in motion stays in motion with the same speed and in the same direction unless acted upon by an unbalanced force.",
+            question: "What is Newton's First Law of Motion?",
+            answer:
               "An object at rest stays at rest and an object in motion stays in motion with the same speed and in the same direction unless acted upon by an unbalanced force.",
           },
         ],
