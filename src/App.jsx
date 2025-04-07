@@ -78,28 +78,48 @@ function App() {
   // Handle adding AI-generated topics to the tree
   const handleAddAITopics = useCallback((topicNodes) => {
     console.log("Received topic nodes to add:", topicNodes);
-    if (!topicNodes || topicNodes.length === 0) {
-      console.warn("No topic nodes to add");
+    
+    // Validate the input
+    if (!topicNodes) {
+      console.warn("No topic nodes received (undefined or null)");
       return;
     }
     
-    setTreeData((currentTreeData) => {
-      console.log("Current tree data:", currentTreeData);
-      // Create a deep copy of the current tree data
-      const newTreeData = JSON.parse(JSON.stringify(currentTreeData));
-      
-      // Add each topic node to the root level
-      topicNodes.forEach(node => {
-        // Ensure nodes have unique IDs
-        const nodeWithId = {
-          ...node,
-          id: `topic-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`
-        };
-        newTreeData.push(nodeWithId);
-      });
-      
-      console.log("Updated tree data:", newTreeData);
-      return newTreeData;
+    if (!Array.isArray(topicNodes)) {
+      console.error("Expected array of topic nodes but received:", typeof topicNodes);
+      return;
+    }
+    
+    if (topicNodes.length === 0) {
+      console.warn("Empty array of topic nodes received");
+      return;
+    }
+    
+    console.log("Valid topics being added:", topicNodes.map(node => node.title));
+    
+    // Add to tree data
+    setTreeData(currentTreeData => {
+      try {
+        // Create a deep copy of the current tree data
+        const newTreeData = JSON.parse(JSON.stringify(currentTreeData));
+        
+        // Add each topic node to the root level
+        topicNodes.forEach(node => {
+          // Ensure nodes have unique IDs
+          const nodeWithId = {
+            ...node,
+            id: `topic-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`
+          };
+          newTreeData.push(nodeWithId);
+          console.log("Successfully added node to tree:", nodeWithId.title);
+        });
+        
+        console.log("Tree data updated successfully. New length:", newTreeData.length);
+        return newTreeData;
+      } catch (error) {
+        console.error("Error updating tree data:", error);
+        return currentTreeData; // Return unchanged data on error
+      }
     });
   }, [setTreeData]);
 

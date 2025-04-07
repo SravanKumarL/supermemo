@@ -68,10 +68,14 @@ function AITopics({ onClose, onAddTopics }) {
       
       console.log("Topics generated from prompt:", topics);
       
+      // Store the suggested topics
       setSuggestedTopics(topics);
-      setSelectedTopics(topics.map(topic => topic.id)); // Select all by default
       
-      console.log("Selected topic IDs:", topics.map(topic => topic.id));
+      // Select all topics by default (store just the IDs)
+      const topicIds = topics.map(topic => topic.id);
+      setSelectedTopics(topicIds);
+      
+      console.log("Selected topic IDs:", topicIds);
     } catch (error) {
       console.error("Error generating topics:", error);
       // Handle error - could show an error message to the user
@@ -85,13 +89,25 @@ function AITopics({ onClose, onAddTopics }) {
    * @param {number|string} topicId - ID of the topic to toggle
    */
   const toggleTopic = (topicId) => {
-    console.log("Toggling topic selection for ID:", topicId);
+    // Convert to string for consistent comparison
+    const topicIdStr = String(topicId);
+    
     setSelectedTopics(prev => {
-      const newSelection = prev.includes(topicId)
-        ? prev.filter(id => id !== topicId)
-        : [...prev, topicId];
-      console.log("Updated selected topics:", newSelection);
-      return newSelection;
+      // Convert all IDs to strings for comparison
+      const prevAsStrings = prev.map(id => String(id));
+      
+      // Check if this ID is already in the selection
+      const isAlreadySelected = prevAsStrings.includes(topicIdStr);
+      
+      console.log(`Topic ${topicIdStr} (${isAlreadySelected ? 'selected' : 'not selected'}) is being ${isAlreadySelected ? 'removed' : 'added'}`);
+      
+      if (isAlreadySelected) {
+        // Remove this ID
+        return prev.filter(id => String(id) !== topicIdStr);
+      } else {
+        // Add this ID
+        return [...prev, topicId];
+      }
     });
   };
 
@@ -99,22 +115,44 @@ function AITopics({ onClose, onAddTopics }) {
    * Processes selected topics, generates flashcards, and adds them to the tree
    */
   const handleAddTopics = async () => {
-    if (selectedTopics.length === 0) return;
+    if (selectedTopics.length === 0) {
+      console.warn("No topics selected, cannot add to tree");
+      return;
+    }
+    
+    console.log("Starting handleAddTopics with selected topic IDs:", selectedTopics);
     
     setIsLoading(true);
     
     try {
+      // Create a map of ID strings to make lookup faster
+      const selectedIdsSet = new Set(selectedTopics.map(id => String(id)));
+      
       // Filter selected topics
       const topicsToAdd = suggestedTopics.filter(topic => 
-        selectedTopics.includes(topic.id)
+        selectedIdsSet.has(String(topic.id))
       );
       
       console.log("Topics selected to add:", topicsToAdd);
+      console.log("Number of topics to add:", topicsToAdd.length);
+      
+      if (topicsToAdd.length === 0) {
+        console.error("No matching topics found to add despite having selected topics");
+        setIsLoading(false);
+        return;
+      }
       
       // Create topic tree nodes with flashcards
       const topicNodes = await createTopicTreeNodes(topicsToAdd);
       
       console.log("Topic nodes created, passing to parent:", topicNodes);
+      console.log("Number of topic nodes created:", topicNodes.length);
+      
+      if (!topicNodes || topicNodes.length === 0) {
+        console.error("No topic nodes were created");
+        setIsLoading(false);
+        return;
+      }
       
       // Pass the created nodes to the parent component
       onAddTopics(topicNodes);
@@ -191,18 +229,24 @@ function AITopics({ onClose, onAddTopics }) {
               
               {/* Interactive topic selection bubbles */}
               <div className="topic-bubbles">
-                {suggestedTopics.map(topic => (
-                  <div 
-                    key={topic.id}
-                    className={`topic-bubble ${selectedTopics.includes(topic.id) ? 'selected' : ''}`}
-                    onClick={() => toggleTopic(topic.id)}
-                  >
-                    {topic.title}
-                    {selectedTopics.includes(topic.id) && (
-                      <span className="check-mark">✓</span>
-                    )}
-                  </div>
-                ))}
+                {suggestedTopics.map(topic => {
+                  // Consistent conversion for comparison
+                  const isSelected = selectedTopics.some(id => String(id) === String(topic.id));
+                  return (
+                    <div 
+                      key={topic.id}
+                      className={`topic-bubble ${isSelected ? 'selected' : 'unselected'}`}
+                      onClick={() => toggleTopic(topic.id)}
+                    >
+                      {topic.title}
+                      {isSelected ? (
+                        <span className="check-mark">✓</span>
+                      ) : (
+                        <span className="uncheck-mark" style={{ color: 'red', marginLeft: '4px' }}>×</span>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
               
               {/* Action buttons for topic selection view */}
@@ -223,7 +267,7 @@ function AITopics({ onClose, onAddTopics }) {
                   onClick={handleAddTopics}
                   disabled={isLoading || selectedTopics.length === 0}
                 >
-                  Add {selectedTopics.length} Topics
+                  Add {selectedTopics.length} {selectedTopics.length === 1 ? 'Topic' : 'Topics'}
                 </button>
               </div>
             </div>
