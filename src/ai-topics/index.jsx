@@ -132,11 +132,7 @@ function AITopics({ onClose, onAddTopics }) {
                   className="generate-button"
                   disabled={isLoading || !prompt.trim()}
                 >
-                  {isLoading ? (
-                    <div className="loading-spinner"></div>
-                  ) : (
-                    <>Generate Map</>
-                  )}
+                  Generate Map
                 </button>
               </form>
             </div>
@@ -177,11 +173,7 @@ function AITopics({ onClose, onAddTopics }) {
                   onClick={handleAddTopics}
                   disabled={isLoading || selectedTopics.length === 0}
                 >
-                  {isLoading ? (
-                    <div className="loading-spinner"></div>
-                  ) : (
-                    <>Add {selectedTopics.length} Topics</>
-                  )}
+                  Add {selectedTopics.length} Topics
                 </button>
               </div>
             </div>

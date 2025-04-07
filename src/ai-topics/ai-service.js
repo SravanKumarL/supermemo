@@ -226,7 +226,7 @@ const DEFAULT_TOPICS = [
  */
 export const generateTopics = async (prompt) => {
   // Simulate network delay
-  await new Promise(resolve => setTimeout(resolve, 1500));
+  await new Promise(resolve => setTimeout(resolve, 300));
   
   // Check if the prompt contains any of our predefined categories
   const lowerPrompt = prompt.toLowerCase();
