@@ -439,7 +439,8 @@ function AITopics({ onClose, onAddTopics }) {
               id: flashcardId,
               type: "flashcard", // Ensure type is set correctly
               isNew: true, // Mark as new for highlighting
-              highlightUntil: Date.now() + (20 * 1000) // Highlight for 20 seconds
+              highlightUntil: Date.now() + (20 * 1000), // Highlight for 20 seconds
+              author: "AI Assistant" // Mark as AI-generated
             };
           });
           
@@ -450,7 +451,8 @@ function AITopics({ onClose, onAddTopics }) {
             type: "sub-topic", // Ensure type is set correctly
             children: flashcards,
             isNew: true, // Mark as new for highlighting
-            highlightUntil: Date.now() + (20 * 1000) // Highlight for 20 seconds
+            highlightUntil: Date.now() + (20 * 1000), // Highlight for 20 seconds
+            author: "AI Assistant" // Mark as AI-generated
           };
         });
         
@@ -461,7 +463,8 @@ function AITopics({ onClose, onAddTopics }) {
           type: "topic", // Ensure type is set correctly
           children: children,
           isNew: true, // Mark as new for highlighting
-          highlightUntil: Date.now() + (20 * 1000) // Highlight for 20 seconds
+          highlightUntil: Date.now() + (20 * 1000), // Highlight for 20 seconds
+          author: "AI Assistant" // Mark as AI-generated
         };
       });
       
@@ -534,10 +537,12 @@ function AITopics({ onClose, onAddTopics }) {
           };
           
           console.log("Fixed topic to add:", fixedTopic);
-          onAddTopics([fixedTopic]);
+          // Add the fixed topic but collapse all existing topics in the tree
+          onAddTopics([fixedTopic], true);
         } else {
           // Call the parent function with the original data
-          onAddTopics([topicToAdd]);
+          // Pass an additional parameter to indicate that existing tree nodes should be collapsed
+          onAddTopics([topicToAdd], true);
         }
         
         console.log("Topics successfully passed to parent component");

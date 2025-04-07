@@ -5,7 +5,7 @@
  */
 
 import "./supermemo-tree.css"; // Import the SuperMemo styling
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import ContentContainer from "./content-container";
 import ContentTree from "./content-tree";
 import Search from "./search";
@@ -25,6 +25,51 @@ function App() {
   const [selectedNodeIndex, setSelectedNodeIndex] = useState(0);
   // State to control AI Topics modal visibility
   const [showAITopics, setShowAITopics] = useState(false);
+  
+  // Function to ensure all AI nodes have proper authorship
+  const migrateAINodes = useCallback((nodes) => {
+    if (!nodes || !Array.isArray(nodes)) return nodes;
+    
+    // Process each node recursively
+    const processNode = (node, parentIsAI = false) => {
+      if (!node) return node;
+      
+      // Check if this is an AI node
+      const isAINode = parentIsAI || node.author === "AI Assistant";
+      
+      // Update the node
+      const updatedNode = {
+        ...node,
+        author: isAINode ? "AI Assistant" : node.author,
+      };
+      
+      // Process children recursively
+      if (updatedNode.children && Array.isArray(updatedNode.children)) {
+        updatedNode.children = updatedNode.children.map(child => 
+          processNode(child, isAINode)
+        );
+      }
+      
+      return updatedNode;
+    };
+    
+    // Process all top-level nodes
+    return nodes.map(node => processNode(node, false));
+  }, []);
+  
+  // Run migration on component mount
+  useEffect(() => {
+    setTreeData(currentData => {
+      // Only run migration if we have data
+      if (!currentData || !Array.isArray(currentData) || currentData.length === 0) {
+        return currentData;
+      }
+      
+      console.log("Running AI node migration on existing data");
+      return migrateAINodes(currentData);
+    });
+  }, [migrateAINodes, setTreeData]);
+  
   /**
    * Simulated database of searchable items
    * TODO: Replace with actual data source
@@ -76,10 +121,11 @@ function App() {
   }, [allItems, handleNodeSelect, selectedNodeIndex]);
 
   // Handle adding AI-generated topics to the tree
-  const handleAddAITopics = useCallback((topicNodes) => {
+  const handleAddAITopics = useCallback((topicNodes, collapseExisting = false) => {
     console.log("Received topic nodes to add:", topicNodes);
     console.log("Topics data type:", typeof topicNodes);
     console.log("Is topics array?", Array.isArray(topicNodes));
+    console.log("Should collapse existing nodes:", collapseExisting);
     
     // Validate the input
     if (!topicNodes) {
@@ -104,28 +150,56 @@ function App() {
     setTreeData(currentTreeData => {
       try {
         // Create a deep copy of the current tree data
-        const newTreeData = JSON.parse(JSON.stringify(currentTreeData));
+        let newTreeData = JSON.parse(JSON.stringify(currentTreeData));
+        
+        // If collapseExisting is true, collapse all existing nodes
+        if (collapseExisting) {
+          // Function to recursively collapse nodes
+          const collapseNodes = (nodes) => {
+            return nodes.map(node => ({
+              ...node,
+              expanded: false, // Collapse this node
+              children: node.children ? collapseNodes(node.children) : [], // Process children recursively
+            }));
+          };
+          
+          // Apply collapse to all existing nodes
+          console.log("Collapsing all existing nodes before adding new AI nodes");
+          newTreeData = collapseNodes(newTreeData);
+        }
+        
+        // Function to recursively ensure all nodes have proper IDs and author property
+        const processNode = (node, isAI = false) => {
+          // Skip if no node
+          if (!node) return node;
+          
+          // Check if this is an AI node based on parent or own attribute
+          const isAINode = isAI || node.author === "AI Assistant";
+          
+          // Create a processed node with ID and always set author if it's an AI node
+          const processedNode = {
+            ...node,
+            id: node.id || `node-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+            expanded: node.expanded !== undefined ? node.expanded : true,
+            author: isAINode ? "AI Assistant" : node.author, // Always set author if AI
+          };
+          
+          // Process children recursively if they exist
+          if (processedNode.children && Array.isArray(processedNode.children)) {
+            processedNode.children = processedNode.children.map(child => 
+              processNode(child, isAINode) // Pass down AI status to all children
+            );
+          }
+          
+          return processedNode;
+        };
         
         // Add each topic node to the root level
         topicNodes.forEach(node => {
-          // Ensure node has all required fields
-          const nodeWithId = {
-            ...node,
-            id: node.id || `topic-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-            expanded: true
-          };
-          
-          // Ensure all children have IDs
-          if (nodeWithId.children && Array.isArray(nodeWithId.children)) {
-            nodeWithId.children = nodeWithId.children.map(child => ({
-              ...child,
-              id: child.id || `child-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-              expanded: true
-            }));
-          }
-          
-          newTreeData.push(nodeWithId);
-          console.log("Successfully added node to tree:", nodeWithId.title);
+          // Process the node and its entire subtree
+          const processedNode = processNode(node, node.author === "AI Assistant");
+          newTreeData.push(processedNode);
+          console.log("Successfully added node to tree:", processedNode.title);
         });
         
         console.log("Tree data updated successfully. New length:", newTreeData.length);

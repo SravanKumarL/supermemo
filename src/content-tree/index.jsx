@@ -426,14 +426,56 @@ function ContentTree({ treeData, onTreeDataChanged, onNodeSelect }) {
                 <div
                   className={`supermemo-node-icon ${
                     node.type === "flashcard"
-                      ? "supermemo-flashcard-icon"
-                      : "supermemo-topic-icon"
+                      ? node.author === "AI Assistant" 
+                        ? "supermemo-ai-flashcard-icon" 
+                        : "supermemo-flashcard-icon"
+                      : node.type === "sub-topic"
+                        ? node.author === "AI Assistant"
+                          ? "supermemo-ai-subtopic-icon"
+                          : "supermemo-topic-icon"
+                        : node.author === "AI Assistant" 
+                          ? "supermemo-ai-topic-icon" 
+                          : "supermemo-topic-icon"
                   }`}
                 >
                   {node.type === "flashcard" ? (
+                    node.author === "AI Assistant" ? (
+                      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="2" y="4" width="20" height="16" rx="2" ry="2"></rect>
+                        <line x1="2" y1="10" x2="22" y2="10"></line>
+                        <path d="M6 14h4"></path>
+                        <path d="M14 14h4"></path>
+                        <path d="M6 18h4"></path>
+                        <path d="M14 18h4"></path>
+                      </svg>
+                    ) : (
+                      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="2" y="4" width="20" height="16" rx="2" ry="2"></rect>
+                        <line x1="2" y1="10" x2="22" y2="10"></line>
+                      </svg>
+                    )
+                  ) : node.type === "sub-topic" ? (
+                    node.author === "AI Assistant" ? (
+                      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M4 6h16"></path>
+                        <path d="M4 12h16"></path>
+                        <path d="M4 18h10"></path>
+                        <circle cx="18" cy="18" r="2"></circle>
+                      </svg>
+                    ) : (
+                      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                      </svg>
+                    )
+                  ) : node.author === "AI Assistant" ? (
                     <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <rect x="2" y="4" width="20" height="16" rx="2" ry="2"></rect>
-                      <line x1="2" y1="10" x2="22" y2="10"></line>
+                      <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                      <circle cx="12" cy="12" r="4"></circle>
+                      <line x1="3" y1="3" x2="21" y2="21"></line>
+                      <line x1="3" y1="21" x2="21" y2="3"></line>
                     </svg>
                   ) : (
                     <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
