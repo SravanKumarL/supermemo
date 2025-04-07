@@ -96,7 +96,7 @@ function App() {
             <Search allItems={allItems} onSelect={handleNodeSelect} />
 
             {/* Content Display Area */}
-            {selectedContent && (
+            {selectedContent ? (
               <div className="w-full bg-white rounded-lg shadow-sm">
                 <ContentContainer
                   initialContent={selectedContent}
@@ -112,6 +112,10 @@ function App() {
                     Discover
                   </button>
                 </div>
+              </div>
+            ) : (
+              <div className="w-full h-64 bg-white rounded-lg shadow-sm flex items-center justify-center">
+                <p className="text-gray-500">Select a topic from the tree or search to get started</p>
               </div>
             )}
           </div>
