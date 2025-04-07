@@ -78,6 +78,8 @@ function App() {
   // Handle adding AI-generated topics to the tree
   const handleAddAITopics = useCallback((topicNodes) => {
     console.log("Received topic nodes to add:", topicNodes);
+    console.log("Topics data type:", typeof topicNodes);
+    console.log("Is topics array?", Array.isArray(topicNodes));
     
     // Validate the input
     if (!topicNodes) {
@@ -96,6 +98,7 @@ function App() {
     }
     
     console.log("Valid topics being added:", topicNodes.map(node => node.title));
+    console.log("First topic structure:", JSON.stringify(topicNodes[0], null, 2).substring(0, 500) + "...");
     
     // Add to tree data
     setTreeData(currentTreeData => {
@@ -127,6 +130,7 @@ function App() {
         
         console.log("Tree data updated successfully. New length:", newTreeData.length);
         console.log("First item in tree after update:", newTreeData[newTreeData.length - 1]);
+        
         return newTreeData;
       } catch (error) {
         console.error("Error updating tree data:", error);

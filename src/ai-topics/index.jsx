@@ -392,6 +392,9 @@ function AITopics({ onClose, onAddTopics }) {
    * Confirms and adds the generated topics to the tree
    */
   const handleConfirmAddition = () => {
+    console.log("handleConfirmAddition called");
+    console.log("Generated tree data:", generatedTreeData);
+    
     if (!generatedTreeData || generatedTreeData.length === 0) {
       console.error("No topic nodes were created to confirm");
       return;
@@ -411,6 +414,7 @@ function AITopics({ onClose, onAddTopics }) {
       
       console.log("Creating parent topic:", parentTopicName);
       console.log("Number of topics to add:", generatedTreeData.length);
+      console.log("onAddTopics function type:", typeof onAddTopics);
       
       // Ensure all nodes have proper IDs before adding to the main tree
       const childNodes = generatedTreeData.map((topicNode, index) => {
@@ -433,7 +437,9 @@ function AITopics({ onClose, onAddTopics }) {
             return {
               ...flashcard,
               id: flashcardId,
-              type: "flashcard" // Ensure type is set correctly
+              type: "flashcard", // Ensure type is set correctly
+              isNew: true, // Mark as new for highlighting
+              highlightUntil: Date.now() + (20 * 1000) // Highlight for 20 seconds
             };
           });
           
@@ -442,7 +448,9 @@ function AITopics({ onClose, onAddTopics }) {
             ...subTopic,
             id: subTopicId,
             type: "sub-topic", // Ensure type is set correctly
-            children: flashcards
+            children: flashcards,
+            isNew: true, // Mark as new for highlighting
+            highlightUntil: Date.now() + (20 * 1000) // Highlight for 20 seconds
           };
         });
         
@@ -451,7 +459,9 @@ function AITopics({ onClose, onAddTopics }) {
           ...topicNode,
           id: topicId,
           type: "topic", // Ensure type is set correctly
-          children: children
+          children: children,
+          isNew: true, // Mark as new for highlighting
+          highlightUntil: Date.now() + (20 * 1000) // Highlight for 20 seconds
         };
       });
       
@@ -461,19 +471,39 @@ function AITopics({ onClose, onAddTopics }) {
         type: "topic",
         category: generatedTreeData[0].category || "Learning Map",
         content: `A collection of topics related to ${parentTopicName}.`,
-        expanded: true,
+        expanded: true, // Ensure the main parent is expanded
         author: "AI Assistant",
         timestamp: new Date().toISOString().split('T')[0],
         id: `main-topic-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-        children: childNodes
+        children: childNodes,
+        isNew: true, // Mark the parent topic as new too
+        highlightUntil: Date.now() + (20 * 1000) // Highlight for 20 seconds
       };
+      
+      // Recursively ensure all nodes are marked as expanded
+      const ensureExpanded = (node) => {
+        if (!node) return node;
+        
+        // Set expanded flag on this node
+        node.expanded = true;
+        
+        // Process children recursively
+        if (node.children && Array.isArray(node.children)) {
+          node.children = node.children.map(ensureExpanded);
+        }
+        
+        return node;
+      };
+      
+      // Apply the expanded flags to our topic tree
+      const expandedTopic = ensureExpanded(mainParentTopic);
       
       // Add detailed debug info
       console.log("========== TOPIC TREE DATA ==========");
-      console.log("Adding topics under a single parent topic:", mainParentTopic.title);
-      console.log("Parent topic ID:", mainParentTopic.id);
-      console.log("Child topic count:", mainParentTopic.children.length);
-      console.log("Full structure:", JSON.stringify(mainParentTopic, null, 2));
+      console.log("Adding topics under a single parent topic:", expandedTopic.title);
+      console.log("Parent topic ID:", expandedTopic.id);
+      console.log("Child topic count:", expandedTopic.children.length);
+      console.log("Full structure:", JSON.stringify(expandedTopic, null, 2));
       
       // Pass the parent topic to the parent component
       if (typeof onAddTopics !== 'function') {
@@ -483,13 +513,32 @@ function AITopics({ onClose, onAddTopics }) {
       }
       
       // Create a standalone copy of the topic structure to avoid any reference issues
-      const topicToAdd = JSON.parse(JSON.stringify(mainParentTopic));
+      const topicToAdd = JSON.parse(JSON.stringify(expandedTopic));
       
       try {
         console.log("Calling onAddTopics with:", [topicToAdd]);
         
-        // Call the parent function
-        onAddTopics([topicToAdd]);
+        // Double-check that we have valid data
+        if (!topicToAdd || !topicToAdd.id || !topicToAdd.title) {
+          console.error("Invalid topic data - missing required fields");
+          console.log("Attempting to fix data structure...");
+          
+          // Create a minimal valid structure if needed
+          const fixedTopic = {
+            ...topicToAdd,
+            id: topicToAdd.id || `main-topic-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+            title: topicToAdd.title || "Learning Map",
+            type: "topic",
+            expanded: true,
+            children: topicToAdd.children || []
+          };
+          
+          console.log("Fixed topic to add:", fixedTopic);
+          onAddTopics([fixedTopic]);
+        } else {
+          // Call the parent function with the original data
+          onAddTopics([topicToAdd]);
+        }
         
         console.log("Topics successfully passed to parent component");
         
