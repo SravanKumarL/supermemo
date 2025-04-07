@@ -70,6 +70,19 @@ const Flashcard = ({ question, answer }) => {
     }
   };
   
+  // If both question and answer are empty, show empty state message
+  if (!question && !answer) {
+    return (
+      <div className="flex flex-col h-[300px]">
+        <div className="bg-white border-y border-gray-200 p-6 rounded-xl h-full flex items-center justify-center">
+          <div className="text-gray-400 italic text-center">
+            <p>This card is empty, please add content</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  
   return (
     <div className="flex flex-col">
       {/* Question Section */}

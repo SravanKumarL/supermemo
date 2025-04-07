@@ -386,7 +386,17 @@ function ContentArea({ isPreview, content, onContentUpdated }) {
         <Flashcard question={question} answer={answer} />
       ) : isPreview ? (
         <div className="markdown-preview pt-4 px-6 pb-6 min-h-[300px]">
-          <MDEditor.Markdown source={content.content || ""} />
+          {content.content ? (
+            <MDEditor.Markdown source={content.content} />
+          ) : (
+            <div className="text-gray-400 italic flex items-center justify-center h-full">
+              <p className="text-center">
+                {content.type === "topic" 
+                  ? "This topic is empty, please add content" 
+                  : "This card is empty, please add content"}
+              </p>
+            </div>
+          )}
         </div>
       ) : content.type === "flashcard" ? (
         <div className="p-2 space-y-3" data-color-mode="light">
