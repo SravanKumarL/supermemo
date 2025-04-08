@@ -5,15 +5,15 @@
  */
 
 import "./supermemo-tree.css"; // Import the SuperMemo styling
-import { useState } from "react";
+import { useState, useCallback, useEffect } from "react";
 import ContentContainer from "./content-container";
 import ContentTree from "./content-tree";
 import Search from "./search";
 import Header from "./header";
 import { initialData } from "./shared";
 import { useLocalStorage } from "@uidotdev/usehooks";
-import { useCallback, useEffect } from "react";
 import { changeNodeAtPath, addNodeUnderParent } from "@nosferatu500/react-sortable-tree";
+import ClaudeTest from './components/ClaudeTest';
 
 function App() {
   // Initial tree data structure with sample content
@@ -22,6 +22,7 @@ function App() {
   const [selectedContent, setSelectedContent] = useState(null);
   // State for toast notification
   const [toast, setToast] = useState(null);
+  const [activeTab, setActiveTab] = useState('main');
 
   // Effect to automatically hide toast after a delay
   useEffect(() => {
@@ -149,38 +150,77 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header Section */}
-      <Header />
-
-      {/* Main Application Content */}
-      <div className="px-8 py-4">
-        <div className="flex gap-4">
-          {/* Left Sidebar - Content Tree Navigation */}
-          <div className="w-1/4">
-            <ContentTree
-              treeData={treeData}
-              onTreeDataChanged={setTreeData}
-              onNodeSelect={handleNodeSelect}
-            />
-          </div>
-
-          {/* Main Content Area */}
-          <div className="w-3/4 space-y-4">
-            {/* Search Bar */}
-            <Search treeData={treeData} onSelect={handleSearchSelect} />
-
-            {/* Content Display Area */}
-            {selectedContent && (
-              <div className="w-full bg-white rounded-lg shadow-sm">
-                <ContentContainer
-                  initialContent={selectedContent}
-                  onContentChange={handleContentChange}
-                  onExtractSelection={handleExtractSelection}
-                />
-              </div>
-            )}
+      {/* Tab Navigation */}
+      <div className="bg-white shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex space-x-4 py-4">
+            <button
+              onClick={() => setActiveTab('main')}
+              className={`px-4 py-2 rounded-md ${
+                activeTab === 'main'
+                  ? 'bg-blue-500 text-white'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              Main App
+            </button>
+            <button
+              onClick={() => setActiveTab('claude')}
+              className={`px-4 py-2 rounded-md ${
+                activeTab === 'claude'
+                  ? 'bg-blue-500 text-white'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              Claude Test
+            </button>
           </div>
         </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {activeTab === 'main' ? (
+          <>
+            {/* Header Section */}
+            <Header />
+
+            {/* Main Application Content */}
+            <div className="px-8 py-4">
+              <div className="flex gap-4">
+                {/* Left Sidebar - Content Tree Navigation */}
+                <div className="w-1/4">
+                  <ContentTree
+                    treeData={treeData}
+                    onTreeDataChanged={setTreeData}
+                    onNodeSelect={handleNodeSelect}
+                  />
+                </div>
+
+                {/* Main Content Area */}
+                <div className="w-3/4 space-y-4">
+                  {/* Search Bar */}
+                  <Search treeData={treeData} onSelect={handleSearchSelect} />
+
+                  {/* Content Display Area */}
+                  {selectedContent && (
+                    <div className="w-full bg-white rounded-lg shadow-sm">
+                      <ContentContainer
+                        initialContent={selectedContent}
+                        onContentChange={handleContentChange}
+                        onExtractSelection={handleExtractSelection}
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </>
+        ) : (
+          <div className="bg-white rounded-lg shadow-sm p-6">
+            <ClaudeTest />
+          </div>
+        )}
       </div>
 
       {/* Toast Notification */}

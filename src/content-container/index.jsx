@@ -7,6 +7,8 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import "./index.css";
 import MDEditor from "@uiw/react-md-editor";
+import { callClaude, extractClaudeResponse } from "../utils/claudeApi";
+import { useLocalStorage } from "@uidotdev/usehooks";
 
 function Footer({
   isFlashcard,
@@ -407,60 +409,6 @@ function ContentArea({ isPreview, content, onContentUpdated }) {
   );
 }
 
-function Header({
-  colorScheme,
-  isPreview,
-  onPreviewUpdated,
-  content,
-  onContentUpdated,
-  onExtractSelection,
-}) {
-  const handleInputChange = useCallback(
-    (e) => {
-      const newTitle = e.target.innerText;
-      onContentUpdated("title", newTitle);
-    },
-    [onContentUpdated]
-  );
-  return (
-    <div className={`p-6 ${colorScheme.header}`}>
-      <div className="flex items-center justify-between mb-4 gap-2">
-        <div className="flex-1">
-          <h1
-            className={`text-2xl font-semibold ${
-              isPreview ? "text-blue-900" : colorScheme.title
-            }`}
-            id="title"
-            contentEditable={!isPreview}
-            suppressContentEditableWarning={true}
-            onInput={handleInputChange}
-          >
-            {content.title}
-          </h1>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className={`text-sm ${colorScheme.category}`}>
-            {content.category}
-          </span>
-          <span
-            className={`text-xs px-2 py-0.5 rounded-full ${colorScheme.tag}`}
-          >
-            {content.type}
-          </span>
-          <ExtractButton 
-            onExtract={onExtractSelection}
-            isDisabled={isPreview}
-          />
-          <ToggleMarkDownBtn
-            isPreview={isPreview}
-            onPreviewUpdated={onPreviewUpdated}
-          />
-        </div>
-      </div>
-    </div>
-  );
-}
-
 const defaultContent = {
   title: "",
   type: "topic",
@@ -474,6 +422,7 @@ const defaultContent = {
 function ContentContainer({ initialContent, onContentChange, onExtractSelection }) {
   const [content, setContent] = useState(initialContent || defaultContent);
   const [isPreview, setIsPreview] = useState(false);
+  const [apiKey] = useLocalStorage("claude-api-key", "");
 
   useEffect(() => {
     setContent({
@@ -489,7 +438,6 @@ function ContentContainer({ initialContent, onContentChange, onExtractSelection 
     setContent((content) => ({ ...content, [field]: value }));
   }, []);
 
-  // Event handlers
   const handleBlur = useCallback(
     (e) => {
       e.stopPropagation();
@@ -500,7 +448,6 @@ function ContentContainer({ initialContent, onContentChange, onExtractSelection 
     [content, onContentChange]
   );
 
-  // Determine content type and color scheme
   const isFlashcard = content.type !== "topic";
   const colorScheme = isFlashcard
     ? {
@@ -574,6 +521,81 @@ function ContentContainer({ initialContent, onContentChange, onExtractSelection 
     }
   }, [getSelectedText, isPreview, onExtractSelection, initialContent]);
 
+  const handleBreakContent = useCallback(async () => {
+    if (!content?.content) {
+      alert("No content to break down");
+      return;
+    }
+
+    try {
+      const prompt = `Please analyze the following text and break it down into logical sections. 
+      For each section, provide:
+      1. The section title
+      2. The start and end of the section content
+      3. Any subsections within it
+      
+      Format your response as JSON with this structure:
+      {
+        "sections": [
+          {
+            "title": "Section Title",
+            "content": "Full section content",
+            "subsections": [
+              {
+                "title": "Subsection Title",
+                "content": "Subsection content"
+              }
+            ]
+          }
+        ]
+      }
+      
+      Here's the text to analyze:
+      ${content.content}`;
+
+      const response = await callClaude(prompt, apiKey);
+      const claudeResponse = extractClaudeResponse(response);
+      
+      try {
+        const sections = JSON.parse(claudeResponse);
+        
+        if (!sections.sections || !Array.isArray(sections.sections)) {
+          throw new Error("Invalid response format");
+        }
+
+        // Create a new topic node for each section
+        for (const section of sections.sections) {
+          // Add the section node
+          onExtractSelection("", {
+            ...content,
+            title: section.title,
+            content: section.content
+          });
+
+          // Create subsection nodes if they exist
+          if (section.subsections && section.subsections.length > 0) {
+            for (const subsection of section.subsections) {
+              // Add the subsection node
+              onExtractSelection("", {
+                ...content,
+                title: subsection.title,
+                content: subsection.content
+              });
+            }
+          }
+        }
+
+        alert("Content has been broken down into sections");
+      } catch (error) {
+        console.error("Error parsing Claude's response:", error);
+        alert("Error processing the content breakdown. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error breaking down content:", error);
+      alert("Error breaking down content. Please check your API key and try again.");
+    }
+  }, [content, apiKey, onExtractSelection]);
+
   return (
     <div
       className={`content-container bg-slate-100 rounded-xl shadow-sm overflow-hidden ${
@@ -589,6 +611,7 @@ function ContentContainer({ initialContent, onContentChange, onExtractSelection 
         onContentUpdated={updateContent}
         onPreviewUpdated={setIsPreview}
         onExtractSelection={handleExtractSelection}
+        onBreakContent={handleBreakContent}
       />
 
       <ContentArea
@@ -604,6 +627,88 @@ function ContentContainer({ initialContent, onContentChange, onExtractSelection 
         isFlashcard={isFlashcard}
         isPreview={isPreview}
       />
+    </div>
+  );
+}
+
+function Header({
+  colorScheme,
+  isPreview,
+  onPreviewUpdated,
+  content,
+  onContentUpdated,
+  onExtractSelection,
+  onBreakContent,
+}) {
+  const handleInputChange = useCallback(
+    (e) => {
+      const newTitle = e.target.innerText;
+      onContentUpdated("title", newTitle);
+    },
+    [onContentUpdated]
+  );
+
+  return (
+    <div className={`p-6 ${colorScheme.header}`}>
+      <div className="flex items-center justify-between mb-4 gap-2">
+        <div className="flex-1">
+          <h1
+            className={`text-2xl font-semibold ${
+              isPreview ? "text-blue-900" : colorScheme.title
+            }`}
+            id="title"
+            contentEditable={!isPreview}
+            suppressContentEditableWarning={true}
+            onInput={handleInputChange}
+          >
+            {content.title}
+          </h1>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className={`text-sm ${colorScheme.category}`}>
+            {content.category}
+          </span>
+          <span
+            className={`text-xs px-2 py-0.5 rounded-full ${colorScheme.tag}`}
+          >
+            {content.type}
+          </span>
+          <ExtractButton 
+            onExtract={onExtractSelection}
+            isDisabled={isPreview}
+          />
+          <button
+            type="button"
+            onClick={onBreakContent}
+            disabled={isPreview}
+            className={`px-2 py-1 rounded text-xs font-medium transition-colors duration-200 flex items-center gap-1 ${
+              isPreview
+                ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                : "bg-amber-100 text-amber-700 hover:bg-amber-200"
+            }`}
+            title="Break content into sections"
+          >
+            <svg
+              className="w-3.5 h-3.5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M4 6h16M4 12h16M4 18h16"
+              />
+            </svg>
+            Break
+          </button>
+          <ToggleMarkDownBtn
+            isPreview={isPreview}
+            onPreviewUpdated={onPreviewUpdated}
+          />
+        </div>
+      </div>
     </div>
   );
 }
