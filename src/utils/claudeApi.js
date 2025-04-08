@@ -15,9 +15,9 @@ export async function callClaude(message, apiKey) {
   console.log('claudeApi: Preparing API request...');
   
   // Validate API key
-  if (!apiKey || !apiKey.startsWith('sk-ant-')) {
+  if (!apiKey || !apiKey.startsWith('sk-ant-api03-')) {
     console.error('claudeApi: Invalid API key format');
-    throw new Error('Invalid API key format. API key should start with "sk-ant-"');
+    throw new Error('Invalid API key format. API key should start with "sk-ant-api03-"');
   }
   
   try {

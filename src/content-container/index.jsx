@@ -8,7 +8,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import "./index.css";
 import MDEditor from "@uiw/react-md-editor";
 import { callClaude, extractClaudeResponse } from "../utils/claudeApi";
-import { useLocalStorage } from "@uidotdev/usehooks";
+import { ANTHROPIC_API_KEY } from "../config";
 
 function Footer({
   isFlashcard,
@@ -422,7 +422,6 @@ const defaultContent = {
 function ContentContainer({ initialContent, onContentChange, onExtractSelection }) {
   const [content, setContent] = useState(initialContent || defaultContent);
   const [isPreview, setIsPreview] = useState(false);
-  const [apiKey] = useLocalStorage("claude-api-key", "");
 
   useEffect(() => {
     setContent({
@@ -433,6 +432,135 @@ function ContentContainer({ initialContent, onContentChange, onExtractSelection 
     });
     setIsPreview(!!initialContent.isPreview);
   }, [initialContent]);
+
+  const handleBreakContent = useCallback(async () => {
+    if (!content?.content) {
+      alert("No content to break down");
+      return;
+    }
+
+    if (!ANTHROPIC_API_KEY) {
+      alert("API key is not set. Please check your configuration.");
+      return;
+    }
+
+    try {
+      const prompt = `Please analyze the following text and break it down into logical sections. 
+      For each section, provide:
+      1. The section title
+      2. The start and end of the section content
+      3. Any subsections within it
+      
+      IMPORTANT: 
+      - Your response must be valid JSON
+      - Do not include any text before or after the JSON
+      - Do not use any special characters or line breaks within the content strings
+      - Escape any quotes within the content using backslashes
+      - Keep each section's content concise and focused
+      - Limit each section to a maximum of 500 words
+      - Ensure the response is complete and not truncated
+      
+      Format your response as JSON with this structure:
+      {
+        "sections": [
+          {
+            "title": "Section Title",
+            "content": "Full section content",
+            "subsections": [
+              {
+                "title": "Subsection Title",
+                "content": "Subsection content"
+              }
+            ]
+          }
+        ]
+      }
+      
+      Here's the text to analyze:
+      ${content.content}`;
+
+      const response = await callClaude(prompt, ANTHROPIC_API_KEY);
+      const claudeResponse = extractClaudeResponse(response);
+      
+      try {
+        // Clean the response to ensure it's valid JSON
+        const cleanedResponse = claudeResponse
+          .replace(/[\r\n]+/g, ' ') // Replace newlines with spaces
+          .replace(/\s+/g, ' ') // Replace multiple spaces with single space
+          .trim();
+        
+        console.log('Cleaned response:', cleanedResponse);
+        
+        // Check if the response appears to be truncated
+        if (!cleanedResponse.endsWith('}')) {
+          throw new Error("Response appears to be truncated");
+        }
+        
+        const sections = JSON.parse(cleanedResponse);
+        
+        if (!sections.sections || !Array.isArray(sections.sections)) {
+          throw new Error("Invalid response format: missing sections array");
+        }
+
+        // Create a new topic node for each section
+        for (const section of sections.sections) {
+          if (!section.title || !section.content) {
+            console.warn('Invalid section format:', section);
+            continue;
+          }
+          
+          // Create a new topic node for the section
+          const sectionNode = {
+            title: section.title,
+            content: section.content,
+            type: "topic",
+            category: content.category || "General",
+            author: content.author || "",
+            timestamp: new Date().toISOString().split('T')[0],
+            source: content.source || "",
+            children: []
+          };
+          
+          // Add the section node
+          onExtractSelection(section.content, sectionNode);
+
+          // Create subsection nodes if they exist
+          if (section.subsections && Array.isArray(section.subsections)) {
+            for (const subsection of section.subsections) {
+              if (!subsection.title || !subsection.content) {
+                console.warn('Invalid subsection format:', subsection);
+                continue;
+              }
+              
+              // Create a new topic node for the subsection
+              const subsectionNode = {
+                title: subsection.title,
+                content: subsection.content,
+                type: "topic",
+                category: content.category || "General",
+                author: content.author || "",
+                timestamp: new Date().toISOString().split('T')[0],
+                source: content.source || "",
+                children: []
+              };
+              
+              // Add the subsection node
+              onExtractSelection(subsection.content, subsectionNode);
+            }
+          }
+        }
+
+        alert("Content has been broken down into sections");
+      } catch (error) {
+        console.error("Error parsing Claude's response:", error);
+        console.error("Raw response:", claudeResponse);
+        alert("Error processing the content breakdown. The response may have been truncated. Please try again with a shorter text or break it down manually.");
+      }
+    } catch (error) {
+      console.error("Error breaking down content:", error);
+      alert("Error breaking down content. Please check your API key and try again.");
+    }
+  }, [content, onExtractSelection]);
 
   const updateContent = useCallback((field, value) => {
     setContent((content) => ({ ...content, [field]: value }));
@@ -520,81 +648,6 @@ function ContentContainer({ initialContent, onContentChange, onExtractSelection 
       alert("Please select some text to extract first");
     }
   }, [getSelectedText, isPreview, onExtractSelection, initialContent]);
-
-  const handleBreakContent = useCallback(async () => {
-    if (!content?.content) {
-      alert("No content to break down");
-      return;
-    }
-
-    try {
-      const prompt = `Please analyze the following text and break it down into logical sections. 
-      For each section, provide:
-      1. The section title
-      2. The start and end of the section content
-      3. Any subsections within it
-      
-      Format your response as JSON with this structure:
-      {
-        "sections": [
-          {
-            "title": "Section Title",
-            "content": "Full section content",
-            "subsections": [
-              {
-                "title": "Subsection Title",
-                "content": "Subsection content"
-              }
-            ]
-          }
-        ]
-      }
-      
-      Here's the text to analyze:
-      ${content.content}`;
-
-      const response = await callClaude(prompt, apiKey);
-      const claudeResponse = extractClaudeResponse(response);
-      
-      try {
-        const sections = JSON.parse(claudeResponse);
-        
-        if (!sections.sections || !Array.isArray(sections.sections)) {
-          throw new Error("Invalid response format");
-        }
-
-        // Create a new topic node for each section
-        for (const section of sections.sections) {
-          // Add the section node
-          onExtractSelection("", {
-            ...content,
-            title: section.title,
-            content: section.content
-          });
-
-          // Create subsection nodes if they exist
-          if (section.subsections && section.subsections.length > 0) {
-            for (const subsection of section.subsections) {
-              // Add the subsection node
-              onExtractSelection("", {
-                ...content,
-                title: subsection.title,
-                content: subsection.content
-              });
-            }
-          }
-        }
-
-        alert("Content has been broken down into sections");
-      } catch (error) {
-        console.error("Error parsing Claude's response:", error);
-        alert("Error processing the content breakdown. Please try again.");
-      }
-    } catch (error) {
-      console.error("Error breaking down content:", error);
-      alert("Error breaking down content. Please check your API key and try again.");
-    }
-  }, [content, apiKey, onExtractSelection]);
 
   return (
     <div
