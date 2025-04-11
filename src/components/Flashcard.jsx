@@ -16,6 +16,7 @@ const Flashcard = ({ question, answer }) => {
   const [feedback, setFeedback] = useState("");
   const [showFeedback, setShowFeedback] = useState(false);
   const [selectedGrade, setSelectedGrade] = useState("");
+  const [memeImage, setMemeImage] = useState("");
   
   /**
    * Reveals the answer side of the flashcard
@@ -37,18 +38,23 @@ const Flashcard = ({ question, answer }) => {
     switch(grade) {
       case 'again':
         setFeedback("You'll see this card again soon to reinforce your memory.");
+        setMemeImage("");
         break;
       case 'hard':
         setFeedback("This was challenging. We'll review it again before long.");
+        setMemeImage("");
         break;
       case 'good':
         setFeedback("Good job! You're making progress with this concept.");
+        setMemeImage("");
         break;
       case 'easy':
         setFeedback("Perfect! You've mastered this concept.");
+        setMemeImage("https://media.giphy.com/media/BzyTuYCmvSORqs1ABM/giphy.gif"); // Keeping this one
         break;
       default:
         setFeedback("Card graded successfully!");
+        setMemeImage("");
     }
     
     // Show feedback
@@ -67,7 +73,8 @@ const Flashcard = ({ question, answer }) => {
       setAnswered(false);
       setShowFeedback(false);
       setSelectedGrade("");
-    }, 1500); // 1.5 seconds delay to show feedback
+      setMemeImage("");
+    }, 3500); // 3.5 seconds delay to show feedback
   };
   
   /**
@@ -140,6 +147,15 @@ const Flashcard = ({ question, answer }) => {
             {showFeedback ? (
               <div className={`text-center py-3 px-4 rounded-lg shadow-sm animate-pulse ${getFeedbackStyles()}`}>
                 <p className="font-medium">{feedback}</p>
+                {memeImage && (
+                  <div className="mt-3 flex justify-center">
+                    <img 
+                      src={memeImage} 
+                      alt="Feedback meme" 
+                      className="h-32 rounded-lg shadow-sm" 
+                    />
+                  </div>
+                )}
               </div>
             ) : (
               <>
